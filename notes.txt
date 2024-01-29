@@ -1,0 +1,14 @@
+Iniciar execução da atividade
+ao iniciar deverá verificar se o usuário não tem outra atividade em execução.
+caso tenha deverá ser perguntado se o usuário quer pausar a atividade e iniciar a outra imediatamente.
+	O sistema deverá criar um registro na timeline notificando a interrupção devido ao início da atividade X
+
+
+
+O sitema deverá ter a jornada de trabalho do funcionário para que possa criar o plano de execução das atividades.
+O sistema deverá ter um parametro de tempo entre entre a execução das tarefas.
+A gerente receberá a demanda e classificará entre Importante, Urgente ou Urgente(Com Execução imediata) e Circustancial.
+O técnico receberá uma notificação alertando da necessidade de informar o tempo estimado para a execução dessa atividade,
+após isso o sistema fará a distribuição entre os horários e dias.
+
+* Verificar o horário 
