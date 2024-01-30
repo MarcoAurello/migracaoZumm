@@ -96,8 +96,8 @@ const Masterpage = (props) => {
   useEffect(() => {
     isAuthenticated().then(_ => {
       setLogged(_.data.data)
-      setPrimeiroLogin(_.data.data.primeiroLogin)
-      setOpenDialogPrimeiroAcesso(_.data.data.primeiroLogin)
+      // setPrimeiroLogin(_.data.data.primeiroLogin)
+      // setOpenDialogPrimeiroAcesso(_.data.data.primeiroLogin)
     })
   }, []);
 
