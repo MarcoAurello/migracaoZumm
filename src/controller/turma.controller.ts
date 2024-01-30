@@ -33,15 +33,15 @@ class TurmaController implements IController {
   async migracaoService() {
     try {
         const result = await Migracao.sequelize?.query("SELECT A.AlunoId, A.AlunoNome, A.AlunoCPF,  A.AlunoEmail, T.TurmaId, T.TurmaNome,  T.CodigoDaTurma, T.TurmaSituacao, T.TurmaDataDeInicio, T.TurmaDataDeTermino,  M.TurmaCodigoFormatado  FROM [DATASET_SIG].dbo.Analise_Turma T INNER JOIN [DATASET_SIG].dbo.Analise_Matricula M ON M.TurmaId = T.TurmaId INNER JOIN [DATASET_SIG].dbo.Analise_Aluno A ON M.AlunoId = A.AlunoId  WHERE  T.UnidadeOperativaId = 182 AND (T.TurmaSituacao = 'Liberada para Matrícula' OR T.TurmaSituacao = 'Em Processo')");
-        // console.log('JSON retornado:', result);
+     //   console.log('JSON retornado:', result);
 
-        // interface TurmaItem {
-        //     TurmaNome: string;
-        //     CodigoDaTurma: string;
-        //     TurmaDataDeInicio: string;
-        //     TurmaDataDeTermino: string;
-        //     // Adicione outras propriedades conforme necessário
-        // }
+        interface TurmaItem {
+            TurmaNome: string;
+            CodigoDaTurma: string;
+            TurmaDataDeInicio: string;
+            TurmaDataDeTermino: string;
+            // Adicione outras propriedades conforme necessário
+        }
         
 
 
@@ -49,7 +49,7 @@ class TurmaController implements IController {
 
          
           for (const item of result ) {
-            console.log('Item:', item.TurmaNome);
+            console.log('Item:', item[0]);
 
             const turmaNome = item?.TurmaNome || 'Nome Indefinido';
             
