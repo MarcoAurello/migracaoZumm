@@ -47,6 +47,8 @@ import PerfilUtils from "./utils/perfil.utils";
 import UserNotificationItem from "./components/user-notification-item";
 import Equipe from "./pages/equipe";
 import ValidarUsuarioForm from "./pages/validar-usuario-form";
+import Turmas from "./pages/turmas";
+import Alunos from "./pages/alunos";
 
 const getCookie = require("./utils/getCookie")
 
@@ -248,26 +250,26 @@ const Masterpage = (props) => {
   }
 
   const actions = [
-    <Tooltip title="Aprovação Equipe" placement="bottom">
-      <IconButton size="large" color="inherit" id="positioned-user-notification-icon-button"
-        onClick={(e) => {
-          setAnchorElUserNotification(e.currentTarget)
-          setOpenUserNotification(true)
-        }}>
-        <Badge badgeContent={usuariosNaoValidados.length} color="error">
-          <ManageAccountsIcon />
-        </Badge>
-      </IconButton>
-    </Tooltip>,
-    <Tooltip title="Nova Atividade" placement="bottom">
-      <IconButton size="large" color="inherit">
-        <Badge badgeContent={0} color="error">
-          <NotificationsIcon />
-        </Badge>
-      </IconButton>
-    </Tooltip>,
+    // <Tooltip title="Aprovação Equipe" placement="bottom">
+    //   <IconButton size="large" color="inherit" id="positioned-user-notification-icon-button"
+    //     onClick={(e) => {
+    //       setAnchorElUserNotification(e.currentTarget)
+    //       setOpenUserNotification(true)
+    //     }}>
+    //     <Badge badgeContent={usuariosNaoValidados.length} color="error">
+    //       <ManageAccountsIcon />
+    //     </Badge>
+    //   </IconButton>
+    // </Tooltip>,
+    // <Tooltip title="Nova Atividade" placement="bottom">
+    //   <IconButton size="large" color="inherit">
+    //     <Badge badgeContent={0} color="error">
+    //       <NotificationsIcon />
+    //     </Badge>
+    //   </IconButton>
+    // </Tooltip>,
     <IconButton 
-      size="large" 
+      size="small" 
       edge="end" 
       aria-haspopup="true" 
       color="inherit" 
@@ -276,7 +278,7 @@ const Masterpage = (props) => {
         setAnchorElAccountMenu(e.currentTarget)
         setOpenAccountMenu(true)
       }}>
-      <AccountCircle />
+      Sair
     </IconButton>
   ]
 
@@ -300,12 +302,12 @@ const Masterpage = (props) => {
       open={openAccountMenu}
       onClose={() => setOpenAccountMenu(false)}
     >
-      <MenuItem onClick={() => setOpenAccountMenu(false)} disableRipple>
+      {/* <MenuItem onClick={() => setOpenAccountMenu(false)} disableRipple>
         <div style={{width: 120,  display: 'flex', flexDirection: 'row'}}>
           <AccountBoxIcon />
           <div style={{paddingLeft: 16 }}>Meu Perfil</div>
         </div>
-      </MenuItem>
+      </MenuItem> */}
       <MenuItem onClick={() => {
         setOpenAccountMenu(false)
         window.location.href = `${process.env.REACT_APP_DOMAIN}/logout`
@@ -526,6 +528,19 @@ const Masterpage = (props) => {
             path="/home"
             render={(props) => <Home {...props} logged={logged} />}
           />
+           <Route
+            exact
+            path="/turmas"
+            render={(props) => <Turmas {...props} logged={logged} />}
+          />
+            <Route
+            exact
+            path="/alunos/:id"
+            render={(props) => <Alunos {...props} logged={logged} />}
+          />
+
+          
+
         </Switch>
         <Dialog open={openDialogPrimeiroAcesso}>
           <DialogTitle>Primeiro Acesso</DialogTitle>

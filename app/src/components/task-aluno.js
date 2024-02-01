@@ -14,11 +14,10 @@ import DialogTitle from '@mui/material/DialogTitle';
 const getCookie = require('../utils/getCookie')
 
 
-const TaskItem = (props) => {
+const TaskAluno = (props) => {
 
 
-  const { idChamado, tituloChamado, descri, criticidade, caminho, fkUnidade,
-    fkStatus, created, modified, usuario, unidade, userSelect, email, fone } = props;
+  const { Nome, Ativo, CriadoNoZum } = props;
 
   const [open, setOpen] = React.useState(false);
   const [criticidadeChefe, setCriticidade] = useState(null)
@@ -74,7 +73,7 @@ const TaskItem = (props) => {
     <div>
       <div style={{
         display: 'flex',
-        flexDirection: 'row',
+        flexDirection: 'column',
         minHeight: 100,
         color: '#424242',
         padding: 16,
@@ -93,10 +92,7 @@ const TaskItem = (props) => {
           crossorigin="anonymous"
         />
 
-        <div style={{ display: 'flex', flexDirection: 'column', paddingRight: 16, borderRight: '1px solid #E0E0E0' }}>
-          <div style={{ fontSize: 13, fontWeight: 'bold', color: '#424242' }}>09:15</div>
-          <div style={{ fontSize: 12, color: '#757575' }}>11:00</div>
-        </div>
+       
 
         <div style={{
           backgroundColor: '#ffffff',
@@ -106,76 +102,44 @@ const TaskItem = (props) => {
           borderRadius: 5,
           boxShadow: '0px 0px 30px -18px #424242',
           display: 'flex',
-          flexDirection: 'column',
+          flexDirection: 'row',
           minWidth: "200px",
+          maxWidth: "200px",
 
         }}>
+         
 
-          <div style={{ display: 'flex', flexDirection: 'row' }}>
-
-
-            <div style={{
-              flex: 1, fontSize: 15, fontWeight: 'bold', color: '#424242', display: 'flex',
-              flexDirection: 'row', alignItems: 'center'
-            }}>{" Assunto: " + props.tituloChamado}
-
-            </div>
+          
+         
 
 
-
+          <div style={{ fontSize: 12, marginLeft: 8, marginRight: 8, position: 'relative' }}>
+            <b>Aluno:</b> {" " + props.Nome} 
           </div>
+          {props.CriadoNoZum === false?
+             <div style={{ marginTop: 5, display: 'flex', flexDirection: 'column' }}>
+             <Button variant="contained" style={{ background: '#00BFFF', borderRadius: 0 }}
+               onClick={() => confirmarEncaminhamento(props.confirmarEncaminhamento)}
+             // onClick={() => selecionarFuncionario()} >
+ 
+             >Migrar para o zumm
+             </Button>
+           </div>
+          
+        :
+        <div style={{ marginTop: 5, display: 'flex', flexDirection: 'column' }}>
+        <Button variant="contained" style={{ background: '#00BFFF', borderRadius: 0 }}
+          onClick={() => confirmarEncaminhamento(props.confirmarEncaminhamento)}
+        // onClick={() => selecionarFuncionario()} >
 
-          <div style={{ minWidth: "200px" }}>
-            <div style={{ fontSize: 12, display: 'flex', flexDirection: 'row', marginTop: 8, minWidth: 10 }}>
-
-
-              <div style={{ marginLeft: 15, marginRight: 8, position: 'relative' }}>
-                <Chip size="small" label={"Chamado aberto em: " + date} />
-              </div>
-              <div style={{ fontSize: 12, marginLeft: 8, marginRight: 8, position: 'relative' }}>
-                <Chip size="small" label={"Solicitante: " + props.usuario} />
-              </div>
-              <div style={{ fontSize: 12, marginLeft: 8, marginRight: 8, position: 'relative' }}>
-                <Chip size="small" label={"Unidade: " + props.unidade} />
-              </div>
-            </div>
-
-            <div style={{ fontSize: 12, display: 'flex', flexDirection: 'row', marginTop: 8, minWidth: 10 }}>
-
-
-
-              <div style={{ fontSize: 12, marginLeft: 8, marginRight: 8, position: 'relative' }}>
-                <Chip size="small" label={"E mail: " + props.email} />
-              </div>
-              <div style={{ fontSize: 12, marginLeft: 8, marginRight: 8, position: 'relative' }}>
-                <Chip size="small" label={"Telefone: " + props.fone} />
-              </div>
-            </div>
-
-
-            <hr></hr>
-
-          </div>
-
-
-          <div style={{ fontSize: 14, marginLeft: 8, marginRight: 8, position: 'relative' }}>
-            <b>Chamado:</b> {" " + props.descricao} 
-          </div>
-          <div style={{ marginTop: 30, display: 'flex', flexDirection: 'row' }}>
-            <Button variant="contained" style={{ background: '#00BFFF', borderRadius: 0 }}
-              onClick={() => confirmarEncaminhamento(props.confirmarEncaminhamento)}
-            // onClick={() => selecionarFuncionario()} >
-
-            >Selecionar Funcionario
-            </Button>
-
-            <div style={{ flex: 1 }}></div>
-            <LinearProgress color="success" variant="determinate" value={100} />
-
-          </div>
+        >Aluno Migrado
+        </Button>
+      </div>
+        }
+         
         </div>
       </div>
-      <Dialog open={open} >
+      {/* <Dialog open={open} >
         <DialogTitle>Selecionar Funcionario</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -258,7 +222,7 @@ const TaskItem = (props) => {
           <Button onClick={() => setOpen(false)}>Cancelar</Button>
           <Button >Salvar</Button>
         </DialogActions>
-      </Dialog>
+      </Dialog> */}
 
 
 
@@ -286,4 +250,4 @@ const TaskItem = (props) => {
   )
 }
 
-export default TaskItem
+export default TaskAluno

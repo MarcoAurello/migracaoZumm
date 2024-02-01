@@ -10,7 +10,10 @@ import routerPerfil from './router/perfil.router'
 import routerChamado from './router/chamado.router'
 import routerConfiguracaoGlobal from './router/configuracaoGlobal.router'
 import routerAlunoTeams from './router/alunoteams.router'
-import routerTurnoAluno from './router/turmaaluno.router'
+import routerTurmaAluno from './router/turmaaluno.router'
+import routerAluno from './router/aluno.router'
+import routerTurma from './router/turma.router'
+
 import protocolo from './utils/protocolo.utils'
 
 const path = require('path')
@@ -40,7 +43,9 @@ class Server {
     this.application.use('/api/chamado/', routerChamado)
     this.application.use('/api/configuracao/', routerConfiguracaoGlobal)
     this.application.use('/api/alunoteams/', routerAlunoTeams)
-    this.application.use('/api/turnoaluno/', routerTurnoAluno)
+    this.application.use('/api/turmaAluno/', routerTurmaAluno)
+    this.application.use('/api/aluno/', routerAluno)
+    this.application.use('/api/turma/', routerTurma)
     this.application.use(express.static(path.resolve('app', 'build')))
     this.application.get('/*', (req, res) =>
       res.sendFile(path.resolve('app', 'build', 'index.html'))

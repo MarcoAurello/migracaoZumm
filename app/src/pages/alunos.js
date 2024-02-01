@@ -14,7 +14,10 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 const getCookie = require('../utils/getCookie')
 
-const Home = (props) => {
+const Alunos = (props) => {
+
+const {id} = props.match.params;
+
   const [openLoadingDialog, setOpenLoadingDialog] = useState(false)
   const [openMessageDialog, setOpenMessageDialog] = useState(false)
   const [message, setMessage] = useState('')
@@ -40,79 +43,81 @@ const Home = (props) => {
   const [open, setOpen] = useState(false);
 
 
-  const onSave = () => {
-    setOpenLoadingDialog(true)
-    const token = getCookie('_token_task_manager')
-    const params = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        tituloChamado: titulo,
-        descricao
-      })
-    }
 
-    fetch(`${process.env.REACT_APP_DOMAIN_API}/api/chamado/`, params)
-      .then(response => {
-        const { status } = response
-        response.json().then(data => {
-          setOpenLoadingDialog(false)
-          if (status === 401) {
-            setMessage(data.message)
-            setOpenMessageDialog(true)
-            window.location.pathname = "/home"
-          } else if (status === 200) {
-            setOpen(false)
-            // alert(JSON.stringify(data.data))
-            setMessage(data.message)
-            setOpenMessageDialog(true)
-            window.location.pathname = "/home"
-            // setArea(data.data)
-          }
-        }).catch(err => setOpenLoadingDialog(true))
-      })
-  }
 
 
   const [alunos, setAlunos] = useState([]);
 
-  const carregarRegistro = (currentPage, pageSize) => {
-    setOpenLoadingDialog(true);
-    const token = getCookie('_token_task_manager');
 
-    fetch(`${process.env.REACT_APP_DOMAIN_API}/api/aluno/?page=${currentPage}&pageSize=${pageSize}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    })
-      .then(response => {
-        setOpenLoadingDialog(false);
-        if (!response.ok) {
-          throw new Error('Erro ao carregar os registros');
+  function carregarRegistro() {
+    // alert(id)
+    setOpenLoadingDialog(true)
+    const token = getCookie("_token_task_manager")
+    const params = {
+        headers: {
+            "Authorization": `Bearer ${token}`
         }
-        return response.json();
-      })
-      .then(data => {
-        // Atualize o estado dos alunos com os dados retornados
-        setAlunos(data.data);
-      })
-      .catch(error => {
-        console.error('Erro ao carregar os registros:', error);
-        setOpenLoadingDialog(false);
-      });
-  };
+    }
+    fetch(`${process.env.REACT_APP_DOMAIN_API}/api/turmaAluno/${id?id:''}`, params)
+        .then(response => {
+            const { status } = response
+            response.json().then(data => {
+                setOpenLoadingDialog(false)
+                if (status === 401) {
+                    // setMessage(data.message)
+                    // setOpenMessageDialog(true)
+                } else if (status === 200) {
+                    setOpenLoadingDialog(false)
+                    setAlunos(data.data)
+                    
+
+                    // setCreateAd(data.data.createdAt)
+
+                
+
+
+
+
+                }
+            }).catch(err => setOpenLoadingDialog(false))
+        })
+}
+
+
+
+
+//   const carregarRegistro = (currentPage, pageSize) => {
+//     setOpenLoadingDialog(true);
+//     const token = getCookie('_token_task_manager');
+
+//     fetch(`${process.env.REACT_APP_DOMAIN_API}/api/turmaAluno/${currentPage}`, {
+//       headers: {
+//         'Authorization': `Bearer ${token}`
+//       }
+//     })
+//       .then(response => {
+//         setOpenLoadingDialog(false);
+//         if (!response.ok) {
+//           throw new Error('Erro ao carregar os registros');
+//         }
+//         return response.json();
+//       })
+//       .then(data => {
+//         // Atualize o estado dos alunos com os dados retornados
+//         setAlunos(data.data);
+//       })
+//       .catch(error => {
+//         console.error('Erro ao carregar os registros:', error);
+//         setOpenLoadingDialog(false);
+//       });
+//   };
 
   // Chame a função carregarRegistro uma vez que o componente é montado
   useEffect(() => {
-    carregarRegistro(currentPage, pageSize);
+    carregarRegistro();
 
 
-
-
-  }, [currentPage, pageSize]);
+}, []);
 
   return (
 
@@ -123,8 +128,8 @@ const Home = (props) => {
       <button style={{ padding: '8px 16px', margin: '0 5px',
        backgroundColor: '#007bff', color: '#fff', border: 'none',
         borderRadius: '4px', cursor: 'pointer',
-         transition: 'background-color 0.3s ease' }} onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/turmas/`} >
-          Todas as turmas</button>
+         transition: 'background-color 0.3s ease' }}onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/home/`}>
+          home</button>
           <button style={{ padding: '8px 16px', margin: '0 5px',
        backgroundColor: '#007bff', color: '#fff', border: 'none',
         borderRadius: '4px', cursor: 'pointer',
@@ -139,25 +144,16 @@ const Home = (props) => {
 
       
      
-       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '20px' }}>
-        <button style={{ padding: '8px 16px', margin: '0 5px', backgroundColor: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', transition: 'background-color 0.3s ease' }} onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}>Anterior</button>
-        <span>Página {currentPage}</span>
-        <button style={{ padding: '8px 16px', margin: '0 5px', backgroundColor: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', transition: 'background-color 0.3s ease' }} onClick={() => setCurrentPage(prev => prev + 1)}>Próxima</button>
-        <button style={{
-          padding: '8px 16px', margin: '0 5px', backgroundColor: 'red', alignSelf:'end', marginLeft:'380px',
-          color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer',
-          transition: 'background-color 0.3s ease'
-        }} o>Migrar todos</button>
-      </div>
       
       <p></p>
-      <b>Alunos não Migrados:</b>
+      {/* {alunos.Turma.turmaNome} */}
+      <b>Alunos:</b>
       {alunos.map((item, index) =>
-        // alert(JSON.stringify(item))
+       
          
         < div key={index}
           style={{
-            // paddingBlock:'10px',
+          
             marginLeft:'10px',
             marginRight:'10px',
             display: 'flex',
@@ -170,38 +166,35 @@ const Home = (props) => {
             marginBottom: '5px',
             boxShadow: '0px 0px 30px -18px #424242',
 
-            // cursor: 'pointer'
           }}>
 
-          {/* <b>Aluno:</b>{item.nome}<br></br> */}
+        
           <div style={{ fontSize: 12, marginLeft: 8, marginRight: 8, position: 'relative' }}>
-            <b>Aluno:</b> {item.nome}
+            <b>Nome:</b> {item.Aluno.nome}
           </div>
           <div style={{ fontSize: 12, marginLeft: 8, marginRight: 8, position: 'relative' }}>
-            <b>Email Criado:</b> {item.email}
+            <b>Email:</b> {item.Aluno.email}
           </div>
-          <div style={{ fontSize: 12, marginLeft: 8, marginRight: 8, position: 'relative' }}>
-              {item.criadoNoTeams === false ? <div ><b>Migrado:</b> Não </div> : <div>Migrado: Sim</div>}
-
-          </div>
+          
           <button style={{
           padding: '8px 16px', margin: '0 5px', backgroundColor: 'red', alignSelf:'end',
           color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer',
          
-        }} o>Migrar aluno para o Zumm</button>
+        }} o>migrar para o zumm</button>
 
-          {/* <div style={{ fontSize: 12, marginLeft: 8, marginRight: 8, position: 'relative' }}>
-            <b>Aluno:</b> {item.TurmaAlunos.id } 
-          </div> */}
+         
 
-
-          <div style={{ color: 'red' }}>{item.TurmaAlunos.id ? item.TurmaAlunos.fkTurma : ''}</div>
+          {/* <div style={{ color: 'red' }}>{item.TurmaAlunos.id ? item.TurmaAlunos.fkTurma : ''}</div> */}
 
 
 
          
         </div>
       )}
+
+
+
+      
 
       {/* <SpeedDial variant="outlined" onClick={() => setOpen(true)}
         ariaLabel="Nova Tarefa"
@@ -339,4 +332,4 @@ const Home = (props) => {
   );
 };
 
-export default Home;
+export default Alunos;

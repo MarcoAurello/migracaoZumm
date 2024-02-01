@@ -33,11 +33,7 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         allowNull: false,
       },
-      criadoNoTeams: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-      },
-
+ 
 
       // fkUnidade: {
       //   type: Sequelize.UUID,

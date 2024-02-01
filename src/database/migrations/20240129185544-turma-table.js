@@ -24,6 +24,16 @@ module.exports = {
         allowNull: false,
 
       },
+      criadoNoTeams: {
+        type: Sequelize.BOOLEAN,
+        allowNull: true,
+
+      },
+      linkTurma: {
+        type: Sequelize.STRING,
+        allowNull: true,
+
+      },
       dataInicio: {
         type: Sequelize.DATE,
         allowNull: false
@@ -37,10 +47,7 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         allowNull: false,
       },
-      criadoNoTeams: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-      },
+    
 
 
       // fkUnidade: {

@@ -14,7 +14,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 const getCookie = require('../utils/getCookie')
 
-const Home = (props) => {
+const Turmas = (props) => {
   const [openLoadingDialog, setOpenLoadingDialog] = useState(false)
   const [openMessageDialog, setOpenMessageDialog] = useState(false)
   const [message, setMessage] = useState('')
@@ -40,50 +40,16 @@ const Home = (props) => {
   const [open, setOpen] = useState(false);
 
 
-  const onSave = () => {
-    setOpenLoadingDialog(true)
-    const token = getCookie('_token_task_manager')
-    const params = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        tituloChamado: titulo,
-        descricao
-      })
-    }
-
-    fetch(`${process.env.REACT_APP_DOMAIN_API}/api/chamado/`, params)
-      .then(response => {
-        const { status } = response
-        response.json().then(data => {
-          setOpenLoadingDialog(false)
-          if (status === 401) {
-            setMessage(data.message)
-            setOpenMessageDialog(true)
-            window.location.pathname = "/home"
-          } else if (status === 200) {
-            setOpen(false)
-            // alert(JSON.stringify(data.data))
-            setMessage(data.message)
-            setOpenMessageDialog(true)
-            window.location.pathname = "/home"
-            // setArea(data.data)
-          }
-        }).catch(err => setOpenLoadingDialog(true))
-      })
-  }
 
 
-  const [alunos, setAlunos] = useState([]);
+
+  const [turmas, setTurmas] = useState([]);
 
   const carregarRegistro = (currentPage, pageSize) => {
     setOpenLoadingDialog(true);
     const token = getCookie('_token_task_manager');
 
-    fetch(`${process.env.REACT_APP_DOMAIN_API}/api/aluno/?page=${currentPage}&pageSize=${pageSize}`, {
+    fetch(`${process.env.REACT_APP_DOMAIN_API}/api/turma/?page=${currentPage}&pageSize=${pageSize}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -97,7 +63,7 @@ const Home = (props) => {
       })
       .then(data => {
         // Atualize o estado dos alunos com os dados retornados
-        setAlunos(data.data);
+        setTurmas(data.data);
       })
       .catch(error => {
         console.error('Erro ao carregar os registros:', error);
@@ -123,8 +89,8 @@ const Home = (props) => {
       <button style={{ padding: '8px 16px', margin: '0 5px',
        backgroundColor: '#007bff', color: '#fff', border: 'none',
         borderRadius: '4px', cursor: 'pointer',
-         transition: 'background-color 0.3s ease' }} onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/turmas/`} >
-          Todas as turmas</button>
+         transition: 'background-color 0.3s ease' }}onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/home/`}>
+          home</button>
           <button style={{ padding: '8px 16px', margin: '0 5px',
        backgroundColor: '#007bff', color: '#fff', border: 'none',
         borderRadius: '4px', cursor: 'pointer',
@@ -143,16 +109,12 @@ const Home = (props) => {
         <button style={{ padding: '8px 16px', margin: '0 5px', backgroundColor: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', transition: 'background-color 0.3s ease' }} onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}>Anterior</button>
         <span>Página {currentPage}</span>
         <button style={{ padding: '8px 16px', margin: '0 5px', backgroundColor: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', transition: 'background-color 0.3s ease' }} onClick={() => setCurrentPage(prev => prev + 1)}>Próxima</button>
-        <button style={{
-          padding: '8px 16px', margin: '0 5px', backgroundColor: 'red', alignSelf:'end', marginLeft:'380px',
-          color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer',
-          transition: 'background-color 0.3s ease'
-        }} o>Migrar todos</button>
+       
       </div>
       
       <p></p>
-      <b>Alunos não Migrados:</b>
-      {alunos.map((item, index) =>
+      <b>Turmas:</b>
+      {turmas.map((item, index) =>
         // alert(JSON.stringify(item))
          
         < div key={index}
@@ -175,20 +137,17 @@ const Home = (props) => {
 
           {/* <b>Aluno:</b>{item.nome}<br></br> */}
           <div style={{ fontSize: 12, marginLeft: 8, marginRight: 8, position: 'relative' }}>
-            <b>Aluno:</b> {item.nome}
+            <b>Nome:</b> {item.turmaNome}
           </div>
           <div style={{ fontSize: 12, marginLeft: 8, marginRight: 8, position: 'relative' }}>
-            <b>Email Criado:</b> {item.email}
+            <b>Codigo:</b> {item.codigoFormatado}
           </div>
-          <div style={{ fontSize: 12, marginLeft: 8, marginRight: 8, position: 'relative' }}>
-              {item.criadoNoTeams === false ? <div ><b>Migrado:</b> Não </div> : <div>Migrado: Sim</div>}
-
-          </div>
+          
           <button style={{
           padding: '8px 16px', margin: '0 5px', backgroundColor: 'red', alignSelf:'end',
-          color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer',
-         
-        }} o>Migrar aluno para o Zumm</button>
+          color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer'}}
+          onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/alunos/${item.id}`}
+          >Ver Alunos</button>
 
           {/* <div style={{ fontSize: 12, marginLeft: 8, marginRight: 8, position: 'relative' }}>
             <b>Aluno:</b> {item.TurmaAlunos.id } 
@@ -339,4 +298,4 @@ const Home = (props) => {
   );
 };
 
-export default Home;
+export default Turmas;

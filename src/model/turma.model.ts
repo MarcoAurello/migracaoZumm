@@ -3,8 +3,7 @@ import bcrypt from 'bcrypt'
 import { uuid } from 'uuidv4'
 import connection from './connection'
 import jwt from 'jsonwebtoken'
-import Perfil from './perfil.model'
-import Area from './area.model'
+
 import Unidade from './unidade.model'
 
 class Turma extends Model {
@@ -18,29 +17,11 @@ class Turma extends Model {
   public dataTermino!: Date
   public ativo!: Boolean
   public criadoNoTeams!: Boolean
-
-//   public telefone!: string
-
-//   public chapa!: string
-
-//   public demandante!: Boolean
-
-//   public fkPerfil!: string
-
-//   public fkArea!: string
-
-//   public ativo!: Boolean
-
-//   public validado!: Boolean
-
-//   public primeiroLogin!: Boolean
-
+  public linkTurma!: string
   public fkUnidade!: string
-
   public createdAt!: Date
-
   public updatedAt!: Date
-
+  public Unidade!: Unidade
 
 }
 
@@ -58,6 +39,10 @@ Turma.init({
     type: DataTypes.STRING,
     allowNull: false
   },
+  linkTurma: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
   dataInicio: {
     type: DataTypes.DATE,
     allowNull: false
@@ -73,58 +58,24 @@ Turma.init({
   },
   criadoNoTeams: {
     type: DataTypes.BOOLEAN,
-    allowNull: false,
+    allowNull: true,
     
   },
  
-//   telefone: {
-//     type: DataTypes.STRING,
-//     allowNull: true
-//   },
-//   chapa: {
-//     type: DataTypes.STRING,
-//     allowNull: true
-//   },
-//   demandante: {
-//     type: DataTypes.BOOLEAN,
-//     allowNull: false,
-//     defaultValue: false
-//   },
-//   ativo: {
-//     type: DataTypes.BOOLEAN,
-//     allowNull: false,
-//     defaultValue: true
-//   },
-//   primeiroLogin: {
-//     type: DataTypes.BOOLEAN,
-//     allowNull: false,
-//     defaultValue: true
-//   },
-//   fkPerfil: {
-//     type: DataTypes.UUID,
-//     allowNull: true
-//   },
+
   fkUnidade: {
     type: DataTypes.UUID,
     allowNull: true
   },
-//   validado: {
-//     type: DataTypes.BOOLEAN,
-//     allowNull: false,
-//     defaultValue: false
-//   },
-//   fkValidador: {
-//     type: DataTypes.UUID,
-//     allowNull: true
-//   }
+
 }, {
   sequelize: connection,
   tableName: 'turma',
 
 })
 
-Turma.belongsTo(Unidade, { foreignKey: 'fkUnidade' })
-Unidade.hasMany(Turma, { foreignKey: 'fkUnidade' })
+// Turma.belongsTo(Unidade, { foreignKey: 'fkUnidade' })
+// Unidade.hasMany(Turma, { foreignKey: 'fkUnidade' })
 
 
 export default Turma

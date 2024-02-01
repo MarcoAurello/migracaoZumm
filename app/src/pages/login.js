@@ -1,63 +1,62 @@
-import React, { useState, useEffect } from 'react'
-import Button from '@mui/material/Button'
-import CssBaseline from '@mui/material/CssBaseline'
-import TextField from '@mui/material/TextField'
-import FormControlLabel from '@mui/material/FormControlLabel'
-import Checkbox from '@mui/material/Checkbox'
-import Paper from '@mui/material/Paper'
-import Box from '@mui/material/Box'
-import Grid from '@mui/material/Grid'
-import Typography from '@mui/material/Typography'
-import { createTheme, ThemeProvider } from '@mui/material/styles'
-import Dialog from '@mui/material/Dialog'
+import React, { useState, useEffect } from 'react';
+import Button from '@mui/material/Button';
+import CssBaseline from '@mui/material/CssBaseline';
+import TextField from '@mui/material/TextField';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
+import Paper from '@mui/material/Paper';
+import Box from '@mui/material/Box';
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import Dialog from '@mui/material/Dialog';
+import { CircularProgress, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import isAutenticated from "../utils/isAuthenticated";
-import { CircularProgress, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material'
 
-const ImageBackground = require('../assets/bg-image.jpg')
-const ImageLogo = require('../assets/senac_logo.png')
+const ImageBackground = require('../assets/bg-image.jpg');
+const ImageLogo = require('../assets/senac_logo.png');
 
-
-const theme = createTheme()
+const theme = createTheme();
 
 const Login = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [openDialog, setOpenDialog] = useState(false)
-  const [openMessageDialog, setOpenMessageDialog] = useState(false)
-  const [message, setMessage] = useState('')
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [openDialog, setOpenDialog] = useState(false);
+  const [openMessageDialog, setOpenMessageDialog] = useState(false);
+  const [message, setMessage] = useState('');
   const [autenticated, setAutenticated] = useState(false);
   const [verified, setVerified] = useState(false);
 
-  const handleCloseMessageDialog = () => setOpenMessageDialog(false)
+  const handleCloseMessageDialog = () => setOpenMessageDialog(false);
 
   const btEntrar = () => {
-    setOpenDialog(true)
-    const params = { 
-      method: 'POST', 
+    setOpenDialog(true);
+    const params = {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ 
-        password, 
-        email 
-      }) 
-    }
+      body: JSON.stringify({
+        password,
+        email
+      })
+    };
 
     fetch(`${process.env.REACT_APP_DOMAIN_API}/api/authentication/`, params)
       .then(response => {
-        const { status } = response
+        const { status } = response;
         response.json().then(data => {
-          setOpenDialog(false)
-          if(status === 401) {
-            setMessage(data.message)
-            setOpenMessageDialog(true)
-          } else if(status === 200) {
+          setOpenDialog(false);
+          if (status === 401) {
+            setMessage(data.message);
+            setOpenMessageDialog(true);
+          } else if (status === 200) {
             document.cookie = `_token_task_manager=${data.token}`;
             window.location.href = `${process.env.REACT_APP_DOMAIN}/home`;
           }
-        })
-      })
-  }
+        });
+      });
+  };
 
   useEffect(() => {
     isAutenticated().then((_) => {
@@ -70,7 +69,7 @@ const Login = () => {
     window.location.href = `${process.env.REACT_APP_DOMAIN}/home`;
   }
 
-  if(!verified || autenticated) {
+  if (!verified || autenticated) {
     return (
       <div style={{
         position: 'absolute',
@@ -86,7 +85,7 @@ const Login = () => {
       }}>
         <CircularProgress />
       </div>
-    )
+    );
   }
 
   return (
@@ -116,7 +115,7 @@ const Login = () => {
               flexDirection: 'column',
               alignItems: 'center'
             }}>
-            <img src={ImageLogo} height={64} />
+            <img src={ImageLogo} height={64} alt="Logo" />
             <Typography component="h1" variant="h5" style={{ marginTop: 16 }}>
               {process.env.REACT_APP_NAME}
             </Typography>
@@ -155,9 +154,9 @@ const Login = () => {
               >
                 Entrar
               </Button>
-              <div style={{ marginTop: 16, display: 'flex', flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ color: 'rgb(117, 117, 117)', fontSize: 11 }}>@2023</div>
-              </div>
+              <Typography variant="body2" color="text.secondary" style={{ marginTop: 1, textAlign: 'center' }}>
+                @2024
+              </Typography>
             </Box>
           </Box>
         </Grid>
@@ -176,7 +175,7 @@ const Login = () => {
         <DialogTitle id="alert-dialog-title">
           Atenção
         </DialogTitle>
-        <DialogContent style={{width: 400}}>
+        <DialogContent style={{ width: 400 }}>
           <DialogContentText id="alert-dialog-description">
             {message}
           </DialogContentText>
@@ -188,7 +187,7 @@ const Login = () => {
         </DialogActions>
       </Dialog>
     </ThemeProvider>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;

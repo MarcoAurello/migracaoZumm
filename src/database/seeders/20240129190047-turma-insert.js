@@ -32,8 +32,10 @@ module.exports = {
         codigoFormatado: '232323',
         dataInicio: new Date(),
         dataTermino: new Date(),
+        criadoNoTeams: false,
         ativo: true,
-        criadoNoTeams:false,
+        linkTurma:'1',
+    
         fkUnidade: unidade[0][0].id,
         createdAt: new Date(),
         updatedAt: new Date()

@@ -9,11 +9,15 @@ import Turma from './turma.model'
 // import Unidade from './unidade.model'
 
 class TurmaAluno extends Model {
-  public id!: string
-  public fkAluno!: string
-  public fkStatus!: string
-  public createdAt!: Date
-  public updatedAt!: Date
+  public id!: string;
+  public fkAluno!: string;
+  public fkTurma!: string;
+  public criadoNoTeams!: Boolean
+  public createdAt!: Date;
+  public updatedAt!: Date;
+  public Aluno!: Aluno;
+  public Turma!: Turma;
+
 }
 
 TurmaAluno.init({
@@ -23,23 +27,32 @@ TurmaAluno.init({
     primaryKey: true
   },
 
-  fkStatus: {
+  fkTurma: {
     type: DataTypes.UUID,
     allowNull: true
   },
   fkAluno: {
     type: DataTypes.UUID,
     allowNull: true
-  }
+  },
+  criadoNoTeams: {
+    type: DataTypes.BOOLEAN,
+    allowNull: true,
+    
+  },
+ 
 
 }, {
   sequelize: connection,
-  tableName: 'turmaaluno',
+  tableName: 'turmaAluno',
 
 })
 
 TurmaAluno.belongsTo(Aluno, { foreignKey: 'fkAluno' })
-TurmaAluno.hasMany(Turma, { foreignKey: 'fkTurma' })
+Aluno.hasMany(TurmaAluno, { foreignKey: 'fkAluno' })
+
+TurmaAluno.belongsTo(Turma, { foreignKey: 'fkTurma' })
+Turma.hasMany(TurmaAluno, { foreignKey: 'fkTurma' })
 
 
 export default TurmaAluno

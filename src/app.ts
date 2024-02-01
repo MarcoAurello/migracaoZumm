@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3354
 app.listen(PORT, () => {
   console.log(`The server is running on port ${PORT}`)
  // Defina o intervalo de tempo em milissegundos (10 minutos = 10 * 60 * 1000)
-const intervalo = 1 * 60 * 1000;
+const intervalo = 100 * 60 * 1000;
 
 // Função para executar a migração inicial e configurar o intervalo de migração
 async function iniciarMigracao() {

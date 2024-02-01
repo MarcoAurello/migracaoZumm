@@ -31,6 +31,7 @@ module.exports = {
         id: uuid(),
         fkTurma:turma[0][0].id,
         fkAluno: aluno[0][0].id,
+        criadoNoTeams:false,
         createdAt: new Date(),
         updatedAt: new Date()
       },

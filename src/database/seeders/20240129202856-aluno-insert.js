@@ -32,7 +32,7 @@ module.exports = {
         cpf: 'Ingles22',
         email: 'email',
         ativo: true,
-        criadoNoTeams:false,
+      
        
         createdAt: new Date(),
         updatedAt: new Date()

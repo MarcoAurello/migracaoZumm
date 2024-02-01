@@ -5,39 +5,23 @@ import connection from './connection'
 import jwt from 'jsonwebtoken'
 import Perfil from './perfil.model'
 import Area from './area.model'
+import TurmaAluno from './turmaaluno.model'
 // import Unidade from './unidade.model'
 
 class Aluno extends Model {
   public id!: string
-
   public cpf!: string
-
   public email!: string
-
   public ativo!: Boolean
-  public criadoNoTeams!: Boolean
+ 
 
-//   public telefone!: string
 
-//   public chapa!: string
-
-//   public demandante!: Boolean
-
-//   public fkPerfil!: string
-
-//   public fkArea!: string
-
-//   public ativo!: Boolean
-
-//   public validado!: Boolean
-
-//   public primeiroLogin!: Boolean
-
-//   public fkUnidade!: string
 
   public createdAt!: Date
 
   public updatedAt!: Date
+  // public TurmaAluno!: TurmaAluno;
+  
 
 
 }
@@ -66,12 +50,7 @@ Aluno.init({
     allowNull: false,
     
   },
-  criadoNoTeams: {
-    type: DataTypes.BOOLEAN,
-    allowNull: false,
-    
-  },
- 
+
 //   telefone: {
 //     type: DataTypes.STRING,
 //     allowNull: true
@@ -119,7 +98,7 @@ Aluno.init({
 })
 
 // Turma.belongsTo(Unidade, { foreignKey: 'fkUnidade' })
-// Unidade.hasMany(Turma, { foreignKey: 'fkUnidade' })
+// Aluno.hasMany(TurmaAluno, { foreignKey: 'fkAluno' })
 
 
 export default Aluno
