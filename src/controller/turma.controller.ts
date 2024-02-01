@@ -99,7 +99,7 @@ class TurmaController implements IController {
                 A.AlunoEmail,
                 T.TurmaId,
                 T.TurmaNome,
-                T.CodigoDaTurma,
+                T.TurmaCodigoFormatado,
                 T.TurmaSituacao,
                 T.TurmaDataDeInicio,
                 T.TurmaDataDeTermino,
@@ -123,19 +123,19 @@ class TurmaController implements IController {
 
         // Verificar se alguma turma existente tem o mesmo código
         for (const turma of todasTurmas) {
-          if (turma.codigoFormatado === item['CodigoDaTurma']) {
+          if (turma.codigoFormatado === item['TurmaCodigoFormatado']) {
             turmaJaExiste = true;
-            console.log('Turma já existe:', item['CodigoDaTurma']);
+            console.log('Turma já existe:', item['TurmaCodigoFormatado']);
             break; // Sair do loop assim que encontrar uma turma existente
           }
         }
 
         // Se a turma não existir, criar uma nova turma
         if (!turmaJaExiste) {
-          console.log('Turma criada:', item['CodigoDaTurma']);
+          console.log('Turma criada:', item['TurmaCodigoFormatado']);
 
           const turmaNome = item['TurmaNome'] || 'Nome Indefinido';
-          const codigoFormatado = item['CodigoDaTurma'] || 'Código Indefinido';
+          const codigoFormatado = item['TurmaCodigoFormatado'] || 'Código Indefinido';
           const dataInicio = item['TurmaDataDeInicio'] || new Date().toISOString();
           const dataTermino = item['TurmaDataDeTermino'] || new Date().toISOString();
 
@@ -183,7 +183,7 @@ class TurmaController implements IController {
             const alunoCriado = await Aluno.create(novoAluno);
     
             const turmaAtual = await Turma.findOne({
-                where: { codigoFormatado: item['CodigoDaTurma'] }
+                where: { codigoFormatado: item['TurmaCodigoFormatado'] }
             });
     
             if (turmaAtual) {
