@@ -17,7 +17,6 @@ async function obterTokenDeAcesso() {
   const clientId = '177b3dca-d0f7-4ac0-883a-7a389357a93d';
 
 
-  // const clientSecret ='S4D8Q~.~m9clYyafeyqqUkpwuBVxF.GNYEAEbbs4':
   const scope = 'https://graph.microsoft.com/.default';
 
   const url = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
