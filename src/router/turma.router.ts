@@ -8,7 +8,7 @@ class TurmaRouter {
 
   constructor () {
     this.router = Router()
-    this.router.use(routerMiddleware.authenticated)
+    // this.router.use(routerMiddleware.authenticated)
     this.routers()
   }
 
@@ -16,6 +16,7 @@ class TurmaRouter {
     this.router.get('/search/', controller.search)
     this.router.get('/', controller.all)
     this.router.post('/', controller.create)
+    this.router.post('/criarEquipe/:turmaId', controller.criarEquipe)
     this.router.get('/:id', controller.find)
     this.router.post('/:id/edit', controller.update)
     this.router.post('/:id/delete', controller.delete)

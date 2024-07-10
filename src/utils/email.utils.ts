@@ -25,7 +25,7 @@ class Email {
         const opcoesEmail = {
           from: configuracao?.email,
           to: email,
-          subject: 'SENAC-PE - Migraçãoc Zumm',
+          subject: 'SENAC-PE - Migração Teams',
           html: textHtml
         }
 

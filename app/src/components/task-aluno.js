@@ -122,7 +122,7 @@ const TaskAluno = (props) => {
                onClick={() => confirmarEncaminhamento(props.confirmarEncaminhamento)}
              // onClick={() => selecionarFuncionario()} >
  
-             >Migrar para o zumm
+             >Migrar para o Teams
              </Button>
            </div>
           

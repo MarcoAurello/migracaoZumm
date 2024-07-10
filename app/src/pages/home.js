@@ -151,7 +151,7 @@ const Home = (props) => {
       </div>
       
       <p></p>
-      <b>Alunos não Migrados:</b>
+      <b>Alunos não Migrados do Sig:</b>
       {alunos.map((item, index) =>
         // alert(JSON.stringify(item))
          
@@ -181,14 +181,31 @@ const Home = (props) => {
             <b>Email Criado:</b> {item.email}
           </div>
           <div style={{ fontSize: 12, marginLeft: 8, marginRight: 8, position: 'relative' }}>
-              {item.criadoNoTeams === false ? <div ><b>Migrado:</b> Não </div> : <div>Migrado: Sim</div>}
+            
+          <div>
+        
+            
+
+          <b>Turma.:</b>     {item.TurmaAlunos?.map(turmaAluno => (
+                    <b key={turmaAluno.id}>{turmaAluno.Turma?.turmaNome}</b>
+                ))}
+            
+      
+    </div>
+            
+            
+           
+            
+          </div>
+          <div style={{ fontSize: 12, marginLeft: 8, marginRight: 8, position: 'relative' }}>
+              {item.status}
 
           </div>
           <button style={{
           padding: '8px 16px', margin: '0 5px', backgroundColor: 'red', alignSelf:'end',
           color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer',
          
-        }} o>Migrar aluno para o Zumm</button>
+        }} o>Migrar aluno para Teams</button>
 
           {/* <div style={{ fontSize: 12, marginLeft: 8, marginRight: 8, position: 'relative' }}>
             <b>Aluno:</b> {item.TurmaAlunos.id } 
@@ -201,138 +218,18 @@ const Home = (props) => {
 
          
         </div>
+        
       )}
+    
 
-      {/* <SpeedDial variant="outlined" onClick={() => setOpen(true)}
-        ariaLabel="Nova Tarefa"
-        sx={{ position: 'fixed', bottom: 16, right: 16 }}
-        icon={<EditIcon />} /> */}
-
-      {/* <Dialog open={open} >
-        <DialogTitle>Abertura de Chamado</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-
-          </DialogContentText>
-
-
-
-          <FormControl fullWidth size="small">
-            <InputLabel id="demo-select-small">Titulo do Chamado</InputLabel>
-            <hr></hr>
-            <TextField
-
-              autoFocus
-              margin="dense"
-              id="tituloChamado"
-              // label="Titulo do chamado"
-              type="text"
-              name="tituloChamado"
-              fullWidth
-              variant="standard"
-              value={titulo}
-              onChange={e => setTitulo(e.target.value)}
-
-            />
-
-          </FormControl>
-
-          <p></p>
-
-
-          <FormControl fullWidth size="small">
-            <InputLabel id="demo-select-small">Descrição do Chamado</InputLabel>
-            <hr></hr>
-            <TextField
-              autoFocus
-              margin="dense"
-              id="descricao"
-              // label="Descrição do chamado"
-              type="text"
-              name="descricao"
-              fullWidth
-              variant="standard"
-              rows={4}
-              multiline
-              value={descricao}
-              onChange={e => setDescricao(e.target.value)}
-
-            />
-
-          </FormControl>
-
-          <p></p>
-
-          <FormControl fullWidth size="small">
-            <InputLabel id="demo-select-small">Unidade</InputLabel>
-            <Select
-              fullWidth
-              labelId="demo-select-small"
-              id="demo-select-small"
-              label="Unidade"
-              value='ssss'>
-              <MenuItem >
-                <em>Nenhum</em>
-              </MenuItem>
-              <MenuItem >
-                aaaaaa
-              </MenuItem>
-
-            </Select>
-          </FormControl>
-
-
-
-          <TextField
-            autoFocus
-            margin="dense"
-            id="caminho"
-            label="Envie uma imagem"
-            type="file"
-            name="caminho"
-            fullWidth
-            variant="standard"
-            value={caminho}
-            onChange={e => setCaminho(e.target.value)}
-          />
-
-
-
-
-
-
-
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancelar</Button>
-          <Button onClick={onSave}>Salvar</Button>
-        </DialogActions>
-      </Dialog> */}
+    
 
       <Dialog open={openLoadingDialog}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: 120, height: 120 }}>
           <CircularProgress />
         </div>
       </Dialog>
-      {/* <Dialog
-        open={openMessageDialog}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description">
-        <DialogTitle id="alert-dialog-title">
-          Atenção
-        </DialogTitle>
-        <DialogContent style={{ width: 400 }}>
-          <DialogContentText id="alert-dialog-description">
-            {message}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions >
-
-          <Button onClick={() => setOpenMessageDialog(false)}>
-            OK
-          </Button>
-        </DialogActions>
-      </Dialog> */}
+   
 
 
     </div>

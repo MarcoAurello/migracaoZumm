@@ -180,7 +180,7 @@ const {id} = props.match.params;
           padding: '8px 16px', margin: '0 5px', backgroundColor: 'red', alignSelf:'end',
           color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer',
          
-        }} o>migrar para o zumm</button>
+        }} o>migrar para o Teams</button>
 
          
 

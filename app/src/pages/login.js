@@ -15,6 +15,7 @@ import isAutenticated from "../utils/isAuthenticated";
 
 const ImageBackground = require('../assets/bg-image.jpg');
 const ImageLogo = require('../assets/senac_logo.png');
+const getCookie = require("../utils/getCookie")
 
 const theme = createTheme();
 
@@ -30,11 +31,13 @@ const Login = () => {
   const handleCloseMessageDialog = () => setOpenMessageDialog(false);
 
   const btEntrar = () => {
+    const token = getCookie('_token_task_manager')
     setOpenDialog(true);
     const params = {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
         password,

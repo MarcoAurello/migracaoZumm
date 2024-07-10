@@ -6,24 +6,7 @@ import jwt from 'jsonwebtoken'
 
 import Unidade from './unidade.model'
 
-class Turma extends Model {
-  public id!: string
-
-  public turmaNome!: string
-
-  public codigoFormatado!: string
-
-  public dataInicio!: Date
-  public dataTermino!: Date
-  public ativo!: Boolean
-  public criadoNoTeams!: Boolean
-  public linkTurma!: string
-  public fkUnidade!: string
-  public createdAt!: Date
-  public updatedAt!: Date
-  public Unidade!: Unidade
-
-}
+class Turma extends Model { }
 
 Turma.init({
   id: {

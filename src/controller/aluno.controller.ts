@@ -23,8 +23,12 @@ class AlunoController implements IController {
             // include: [{
             //   model: TurmaAluno, as: 'TurmaAluno', include: [Turma]
             // }],
-            include: [TurmaAluno],
-
+            include: [
+              {
+                  model: TurmaAluno,
+                  include: [Turma]
+              }
+          ],
             limit: pageSize, // Limite de registros por página
             offset: offset, // Deslocamento
         });

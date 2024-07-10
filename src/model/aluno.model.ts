@@ -8,23 +8,7 @@ import Area from './area.model'
 import TurmaAluno from './turmaaluno.model'
 // import Unidade from './unidade.model'
 
-class Aluno extends Model {
-  public id!: string
-  public cpf!: string
-  public email!: string
-  public ativo!: Boolean
- 
-
-
-
-  public createdAt!: Date
-
-  public updatedAt!: Date
-  // public TurmaAluno!: TurmaAluno;
-  
-
-
-}
+class Aluno extends Model { }
 
 Aluno.init({
   id: {

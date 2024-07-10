@@ -71,6 +71,30 @@ const Turmas = (props) => {
       });
   };
 
+  const handleCriarEquipe = async (turmaId) => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_DOMAIN_API}/api/turma/criarEquipe/${turmaId}`, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          }
+          // Você pode adicionar mais configurações aqui, como enviar dados no corpo da requisição
+      });
+
+      if (response.ok) {
+          alert('Equipe criada com sucesso!');
+          // Atualizar o estado ou qualquer ação adicional após a criação da equipe
+      } else {
+          throw new Error('Falha ao criar equipe');
+      }
+  } catch (error) {
+      console.error('Erro ao criar equipe:', error);
+      alert('Erro ao criar equipe');
+  }
+};
+
+
+
   // Chame a função carregarRegistro uma vez que o componente é montado
   useEffect(() => {
     carregarRegistro(currentPage, pageSize);
@@ -142,6 +166,14 @@ const Turmas = (props) => {
           <div style={{ fontSize: 12, marginLeft: 8, marginRight: 8, position: 'relative' }}>
             <b>Codigo:</b> {item.codigoFormatado}
           </div>
+
+
+           <button  style={{
+          padding: '8px 16px', margin: '0 5px', backgroundColor: 'red', alignSelf:'end',
+          color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer'}}
+            onClick={() => handleCriarEquipe(item.id)}>
+                        Criar Turma no Teams
+                    </button><br></br>
           
           <button style={{
           padding: '8px 16px', margin: '0 5px', backgroundColor: 'red', alignSelf:'end',

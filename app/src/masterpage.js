@@ -426,7 +426,7 @@ const Masterpage = (props) => {
       <CssBaseline />
       <Toolbar
         menu={menu}
-        title='SENAC - Migração Zumm'
+        title='SENAC - Migração Teams'
         actions={actions} />
       {renderMenu}
       {renderUserNotification}
