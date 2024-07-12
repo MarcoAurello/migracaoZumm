@@ -44,7 +44,7 @@ async function criarEquipe1(token, nome, codigo, user) {
   // Defina o corpo da solicitação
   const equipe = {
     "template@odata.bind": "https://graph.microsoft.com/v1.0/teamsTemplates('educationClass')",
-    "displayName": nome + codigo,
+    "displayName": nome +' '+ codigo,
     "description": codigo,
     "members": [
       {
