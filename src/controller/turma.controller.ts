@@ -16,7 +16,7 @@ const getAccessToken = require('../utils/authConfig');
 const { Client } = require('@microsoft/microsoft-graph-client');
 
 
- 
+
 
 async function obterToken() {
   const data = {
@@ -38,23 +38,23 @@ async function obterToken() {
 
 
 
-async function criarEquipe1(token, nome , codigo, user) {
+async function criarEquipe1(token, nome, codigo, user) {
 
-  
+
   // Defina o corpo da solicitação
   const equipe = {
     "template@odata.bind": "https://graph.microsoft.com/v1.0/teamsTemplates('educationClass')",
-  "displayName": nome+codigo,
-  "description": codigo,
-  "members":[
+    "displayName": nome + codigo,
+    "description": codigo,
+    "members": [
       {
-         "@odata.type":"#microsoft.graph.aadUserConversationMember",
-         "roles":[
-            "owner"
-         ],
-         "user@odata.bind": `https://graph.microsoft.com/v1.0/users/${user}`
+        "@odata.type": "#microsoft.graph.aadUserConversationMember",
+        "roles": [
+          "owner"
+        ],
+        "user@odata.bind": `https://graph.microsoft.com/v1.0/users/${user}`
       }
-   ]
+    ]
   };
 
   // Defina os cabeçalhos da solicitação
@@ -67,6 +67,15 @@ async function criarEquipe1(token, nome , codigo, user) {
     // Envie a solicitação POST para criar a equipe
     const response = await axios.post('https://graph.microsoft.com/v1.0/teams', equipe, { headers });
     console.log('Equipe criada:', response.data);
+
+    const contentLocation = response.headers['content-location'];
+    const match = contentLocation.match(/\/teams\('([^']+)'\)/);
+    const teamId = match ? match[1] : null;
+    console.log('Team ID:', teamId);
+
+
+    return { data: response.data, teamId };
+
     return response.data;
   } catch (error) {
     console.error('Erro ao criar equipe:', error.response ? error.response.data : error.message);
@@ -141,7 +150,7 @@ class TurmaController implements IController {
     throw new Error("Method not implemented.");
   }
 
- 
+
 
   async criarEquipe(req, res, next) {
     try {
@@ -150,10 +159,10 @@ class TurmaController implements IController {
 
       const { emailAdm } = req.body;
 
-  
+
       const turmaAtual = await Turma.findOne({
         where: { id: turmaId }
-       
+
       });
 
       const nome = turmaAtual?.turmaNome
@@ -163,23 +172,32 @@ class TurmaController implements IController {
       // console.log(emailAdm)
 
       const user = await obterUsuarios(emailAdm)
-      console.log('aaa' +user)
+      console.log('aaa' + user)
 
 
 
-      if(nome && codigo && user!= undefined){
+      if (nome && codigo && user != undefined) {
 
         const equipe = await criarEquipe1(token, nome, codigo, user);
+
+
         console.log("Equipe criada:", equipe);
-        await Turma.update(
-          { criadoNoTeams: true }, 
-          { where: { id: turmaAtual?.id } }
-        );
+
+        if (equipe.teamId) {
+          console.log('fff'+ equipe.teamId)
+          await Turma.update(
+            {
+              criadoNoTeams: true,
+              idTurmaTeams: equipe.teamId
+            },
+            { where: { id: turmaAtual.id } }
+          );
+        }
         res.status(200).json({ equipe });
       }
-  
-  
-  
+
+
+
     } catch (error) {
       console.error("Erro ao criar grupo ou equipe:", error);
       res.status(500).json({ error: error.message });
@@ -197,11 +215,11 @@ class TurmaController implements IController {
     throw new Error("Method not implemented.");
   }
 
-  async search (req: any, res: Response, next: NextFunction): Promise<any> {
+  async search(req: any, res: Response, next: NextFunction): Promise<any> {
     try {
       const { pesquisa } = req.query
       console.log(pesquisa)
-   
+
 
       const registros = await Turma.findAll({
         where: {
@@ -211,11 +229,11 @@ class TurmaController implements IController {
           ]
         }
       });
-      
 
-  
 
-      console.log("______________"+JSON.stringify(registros))
+
+
+      console.log("______________" + JSON.stringify(registros))
 
       res.status(200).json({ data: registros })
     } catch (err) {

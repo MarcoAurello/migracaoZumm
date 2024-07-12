@@ -33,6 +33,7 @@ module.exports = {
         dataInicio: new Date(),
         dataTermino: new Date(),
         criadoNoTeams: false,
+        idTurmaTeams:'sasasaas',
         ativo: true,
         linkTurma:'1',
     

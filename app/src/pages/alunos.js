@@ -83,6 +83,52 @@ const {id} = props.match.params;
         })
 }
 
+const onSave = (item) => {
+  // alert('1')
+
+
+  
+    setOpenLoadingDialog(true)
+  const token = getCookie("_token_task_manager")
+  const params = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({
+      idTurma: id,
+      email: item
+    })
+  }
+
+  fetch(`${process.env.REACT_APP_DOMAIN_API}/api/aluno/`, params)
+    .then(response => {
+      const { status } = response
+      response.json().then(data => {
+        setOpenLoadingDialog(false)
+        if (status === 401) {
+          alert(data.message)
+          // setOpenMessageDialog(true)
+          // window.location.pathname = "/login"
+        } else if (status === 200) {
+          // setOpen(false)
+          // alert(JSON.stringify(data.data))
+          alert(data.message)
+          // alert(data.message)
+          // setQuantidade('')
+          // setOpenMessageDialog(true)
+          // setSolicitar(false)
+          // window.location.reload()
+          // setArea(data.data)
+        }
+      }).catch(err => setOpenLoadingDialog(true))
+    })
+
+  
+  
+}
+
 
 
 
@@ -176,11 +222,13 @@ const {id} = props.match.params;
             <b>Email:</b> {item.Aluno.email}
           </div>
           
-          <button style={{
+          <button 
+           onClick={() => onSave(item.Aluno.email)}
+          style={{
           padding: '8px 16px', margin: '0 5px', backgroundColor: 'red', alignSelf:'end',
           color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer',
          
-        }} o>migrar para o Teams</button>
+        }} o>Inserir Aluno na turma</button>
 
          
 

@@ -19,6 +19,11 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true
       },
+      idTurmaTeams: {
+        type: Sequelize.STRING,
+        allowNull: true,
+
+      },
       codigoFormatado: {
         type: Sequelize.STRING,
         allowNull: false,

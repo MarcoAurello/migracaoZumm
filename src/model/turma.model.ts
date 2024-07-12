@@ -22,6 +22,11 @@ Turma.init({
     type: DataTypes.STRING,
     allowNull: false
   },
+
+  idTurmaTeams: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
   linkTurma: {
     type: DataTypes.STRING,
     allowNull: true
