@@ -7,7 +7,7 @@ import routerUsuario from './router/usuario.router'
 import routerUnidade from './router/unidade.router'
 import routerArea from './router/area.router'
 import routerPerfil from './router/perfil.router'
-import routerChamado from './router/chamado.router'
+
 import routerConfiguracaoGlobal from './router/configuracaoGlobal.router'
 import routerAlunoTeams from './router/alunoteams.router'
 import routerTurmaAluno from './router/turmaaluno.router'
@@ -40,7 +40,7 @@ class Server {
     this.application.use('/api/unidade/', routerUnidade)
     this.application.use('/api/area/', routerArea)
     this.application.use('/api/perfil/', routerPerfil)
-    this.application.use('/api/chamado/', routerChamado)
+
     this.application.use('/api/configuracao/', routerConfiguracaoGlobal)
     this.application.use('/api/alunoteams/', routerAlunoTeams)
     this.application.use('/api/turmaAluno/', routerTurmaAluno)
