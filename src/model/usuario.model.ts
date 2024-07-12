@@ -7,37 +7,7 @@ import Perfil from './perfil.model'
 import Area from './area.model'
 
 class Usuario extends Model {
-  public id!: string
-
-  public nome!: string
-
-  public email!: string
-
-  public password!: string
-
-  public passwordHash!: string
-
-  public telefone!: string
-
-  public chapa!: string
-
-  public demandante!: Boolean
-
-  public fkPerfil!: string
-
-  public fkArea!: string
-
-  public ativo!: Boolean
-
-  public validado!: Boolean
-
-  public primeiroLogin!: Boolean
-
-  public fkValidador!: string
-
-  public createdAt!: Date
-
-  public updatedAt!: Date
+ 
 
   public generateToken () {
     return jwt.sign({ id: this.id }, 'c43e4311194ab5795eaf4db533b8172d')

@@ -47,7 +47,7 @@ import PerfilUtils from "./utils/perfil.utils";
 import UserNotificationItem from "./components/user-notification-item";
 import Equipe from "./pages/equipe";
 import ValidarUsuarioForm from "./pages/validar-usuario-form";
-import Turmas from "./pages/turmas";
+// import Turmas from "./pages/turmas";
 import Alunos from "./pages/alunos";
 
 const getCookie = require("./utils/getCookie")
@@ -528,11 +528,11 @@ const Masterpage = (props) => {
             path="/home"
             render={(props) => <Home {...props} logged={logged} />}
           />
-           <Route
+           {/* <Route
             exact
             path="/turmas"
             render={(props) => <Turmas {...props} logged={logged} />}
-          />
+          /> */}
             <Route
             exact
             path="/alunos/:id"
