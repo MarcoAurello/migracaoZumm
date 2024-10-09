@@ -28,7 +28,7 @@ Turma.init({
     allowNull: true
   },
   linkTurma: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT,
     allowNull: true
   },
   dataInicio: {

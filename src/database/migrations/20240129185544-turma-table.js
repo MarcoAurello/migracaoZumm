@@ -35,7 +35,7 @@ module.exports = {
 
       },
       linkTurma: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: true,
 
       },

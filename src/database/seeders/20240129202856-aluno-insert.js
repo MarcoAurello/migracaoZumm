@@ -31,7 +31,11 @@ module.exports = {
         nome:"joão",
         cpf: 'Ingles22',
         email: 'email',
+        emailCadastro: 'emailCadastro',
+        emailCadastroESenac: false,
         ativo: true,
+        emailCriado: false,
+        alunovinculado: false,
       
        
         createdAt: new Date(),

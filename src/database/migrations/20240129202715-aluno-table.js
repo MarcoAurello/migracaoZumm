@@ -28,11 +28,34 @@ module.exports = {
         allowNull: false,
 
       },
+      emailCadastro: {
+        type: Sequelize.STRING,
+        allowNull: true,
+
+      },
   
       ativo: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
       },
+      emailCriado: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+      },
+
+      
+
+      emailCadastroESenac: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+      },
+
+
+      alunoVinculado: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+      },
+ 
  
 
       // fkUnidade: {

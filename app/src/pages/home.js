@@ -47,12 +47,17 @@ const Home = (props) => {
     let timeoutId;
 
 
-    if (pesquisa.length > 3) {
+    if (pesquisa.length > 6) {
       timeoutId = setTimeout(() => {
         pesquisar();
       }, 10); // Executa a cada 5 segundos
     }
-  }, [pesquisa]);
+
+
+    // if(turmaSelecionada){
+    //   alert(JSON.stringify(turmaSelecionada))
+    // }
+  }, [pesquisa,]);
 
 
 
@@ -98,7 +103,7 @@ const Home = (props) => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ emailAdm}) 
+        body: JSON.stringify({ emailAdm })
       });
 
       if (response.ok) {
@@ -110,17 +115,17 @@ const Home = (props) => {
     } catch (error) {
       console.error('Erro ao criar equipe:', error);
       alert('Erro ao criar equipe');
-    }finally {
+    } finally {
       setIsLoading(false);
     }
   };
 
   const handleCriarEquipe1 = async (turmaId) => {
-    
-      setModelAdmTeams(true)
-      setIdEquipe(turmaId)
-      
-    
+
+    setModelAdmTeams(true)
+    setIdEquipe(turmaId)
+
+
   };
 
   const overlayStyle = {
@@ -135,7 +140,7 @@ const Home = (props) => {
     alignItems: 'center',
     zIndex: 9999
   };
-  
+
   const spinnerStyle = {
     border: '8px solid rgba(0, 0, 0, 0.1)',
     borderLeftColor: '#ffffff',
@@ -151,7 +156,7 @@ const Home = (props) => {
       '100%': { transform: 'rotate(360deg)' },
     }
   };
-  
+
   // Adicione as regras de animação ao estilo do componente
   const styleSheet = document.styleSheets[0];
   const keyframes = `@keyframes spin {
@@ -192,7 +197,7 @@ const Home = (props) => {
         borderRadius: '4px', cursor: 'pointer',
         transition: 'background-color 0.3s ease'
       }} onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}>
-        Alunos Migrados</button>
+        Cadastrar Gestor de Turma</button>
       <hr></hr>
 
 
@@ -208,7 +213,7 @@ const Home = (props) => {
         fullWidth
         id="filled-basic"
         // variant="filled"
-        label="Informe o nome ou codigo da turma"
+        label="Informe o codigo da turma ex 2024.20.169"
         name="pesquisa"
         value={pesquisa}
 
@@ -216,103 +221,105 @@ const Home = (props) => {
         onChange={(e) => setPesquisa(e.target.value)}
       />
 
-      {turmaSelecionada.length > 0 ? (
-        <center>
-          <table
-            className="table table-striped"
-            style={{
-              border: '1px solid #ccc', // Adiciona uma borda de 5px sólida cinza
-              boxShadow: '2px 2px 5px rgba(0, 0, 0, 0.1)', // Adiciona sombreado
-              borderRadius: '10px', // Adiciona bordas arredondadas de 10px
-              width: '100%',
-              backgroundColor: '#080f00',
-
-            }}
-          >
-            <tbody>
-              <tr style={{ wordBreak: "break-all", fontSize: '20px', color: '#fff' }}>
-                <td colSpan="5"><b>Turmas</b></td>
-
-
-              </tr>
-              <tr style={{ color: '#fff' }}>
-                <td>Turma</td>
-                <td>Codigo</td>
-
-                <td></td>
-              </tr>
-
-              {turmaSelecionada.map((item, index) => (
-                <tr key={index} style={{ border: '10px', color: '#fff', marginBottom: '20px' }}>
-                  <td >{item.turmaNome ? item.turmaNome : ''}<br></br>
-
-
-                  </td>
-                  {item.codigoFormatado ? item.codigoFormatado : ''}
-                  <td >
-
+{turmaSelecionada.length > 0 ? (
+  <center>
+    <table
+      className="table table-striped"
+      style={{
+        border: '1px solid #ccc', // Borda cinza
+        boxShadow: '2px 2px 5px rgba(0, 0, 0, 0.1)', // Sombreado sutil
+        borderRadius: '10px', // Bordas arredondadas
+        width: '100%',
+        backgroundColor: '#FFFFFF', // Fundo branco para contraste
+        color: '#333', // Cor de texto para boa legibilidade
+      }}
+    >
+      <thead>
+        <tr style={{ backgroundColor: '#0078D4', color: '#FFFFFF', fontSize: '18px', textAlign: 'left' }}>
+          <td colSpan="5" style={{ padding: '10px', fontWeight: 'bold' }}>Turmas</td>
+        </tr>
+        <tr style={{ backgroundColor: '#F3F2F1', color: '#333', fontSize: '16px' }}>
+          <td style={{ padding: '10px' }}>Turma</td>
+          <td style={{ padding: '10px' }}>Código</td>
+          <td style={{ padding: '10px' }}>Ações</td>
+        </tr>
+      </thead>
+      <tbody>
+        {turmaSelecionada.map((item, index) => (
+          <tr key={index} style={{ borderBottom: '1px solid #E1E1E1', color: '#333' }}>
+            <td style={{ padding: '10px' }}>{item.turmaNome ? item.turmaNome : ''}</td>
+            <td style={{ padding: '10px' }}>{item.codigoFormatado ? item.codigoFormatado : ''}</td>
+            <td style={{ padding: '10px', textAlign: 'center' }}>
+              <div>
+                {item.criadoNoTeams === false ? (
                   <div>
-                    {item.criadoNoTeams === false?
-                    <div>
-                       {isLoading && (
-        <div style={overlayStyle}>
-          <div style={spinnerStyle}></div>
-          <p style={{ color: 'white', fontSize: '15px', marginTop: '10px' }}>Criando Equipe no teams...</p>
-        </div>
-      )}
-      <button style={buttonStyle} onClick={() => handleCriarEquipe1(item.id)}>
-        Criar equipe no teams
-      </button>
-
-                    </div>:
+                    {isLoading && (
+                      <div style={overlayStyle}>
+                        <div style={spinnerStyle}></div>
+                        <p style={{ color: 'white', fontSize: '15px', marginTop: '10px' }}>Criando Equipe no Teams...</p>
+                      </div>
+                    )}
+                    <button
+                      style={{
+                        padding: '8px 16px',
+                        backgroundColor: '#0078D4',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: '600'
+                      }}
+                      onClick={() => handleCriarEquipe1(item.id)}
+                    >
+                      Criar equipe no Teams
+                    </button>
+                  </div>
+                ) : (
+                  <a
+                    style={{
+                      padding: '8px 16px',
                     
-                    <button style={buttonStyle}>
-        Turma Criada
-      </button>
-
-                    }
-     
-    </div>
-                  </td> <td>
-
-                    {item.criadoNoTeams === false?"":
-
-
-<button style={{
-  padding: '8px 16px', margin: '0 5px', backgroundColor: 'red', alignSelf: 'end',
-  color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer'
-}}
-  onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/alunos/${item.id}`}
->Ver Alunos da turma</button>
-
-                    }
-
-
-
-
-                  </td>
-                </tr>
-
-
-              ))}
-            </tbody>
-          </table>
-        </center>
-      ) : (
-        ""
-      )}
-
-
-
-
-
+                      color: '#6CC24A',
+                      border: 'none',
+                      borderRadius: '4px',
+                     
+                    }}
+                  >
+                    Turma Criada
+                  </a>
+                )}
+              </div>
+            </td>
+            <td style={{ padding: '10px', textAlign: 'center' }}>
+              {item.criadoNoTeams === false ? "" : (
+                <button
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#E57373',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '600'
+                  }}
+                  onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/alunos/${item.id}`}
+                >
+                  Ver Alunos da Turma
+                </button>
+              )}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </center>
+) : (
+  <p style={{ textAlign: 'center', color: '#999' }}>Nenhuma turma encontrada.</p>
+)}
 
 
-
-
-      <p></p>
-
-     
 
 
       {/* <SpeedDial variant="outlined" onClick={() => setOpen(true)}
@@ -330,7 +337,7 @@ const Home = (props) => {
 
 
           <FormControl fullWidth size="small">
-         
+
             <hr></hr>
             <TextField
 
@@ -355,16 +362,16 @@ const Home = (props) => {
 
         </DialogContent>
 
-      
+
         <DialogActions>
           {emailAdm && idEquipe
-          ?
-          <Button onClick={() => handleCriarEquipe()}>Criar equipe </Button>
-        :''}
-        
+            ?
+            <Button onClick={() => handleCriarEquipe()}>Criar equipe </Button>
+            : ''}
+
 
           <Button onClick={() => setModelAdmTeams(false)}>Cancelar</Button>
-        
+
         </DialogActions>
       </Dialog>
 

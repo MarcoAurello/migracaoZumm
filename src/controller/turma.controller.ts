@@ -38,20 +38,62 @@ async function obterToken() {
 
 
 
+// async function criarEquipe1(token, nome, codigo, user) {
+
+
+//   // Defina o corpo da solicitação
+//   const equipe = {
+//     "template@odata.bind": "https://graph.microsoft.com/v1.0/teamsTemplates('educationClass')",
+//     "displayName": nome + codigo,
+//     "description": codigo,
+//     "members": [
+//       {
+//         "@odata.type": "#microsoft.graph.aadUserConversationMember",
+//         "roles": [
+//           "owner"
+//         ],
+//         "user@odata.bind": `https://graph.microsoft.com/v1.0/users/${user}`
+//       }
+//     ]
+//   };
+
+//   // Defina os cabeçalhos da solicitação
+//   const headers = {
+//     'Authorization': `Bearer ${token}`,
+//     'Content-Type': 'application/json'
+//   };
+
+//   try {
+//     // Envie a solicitação POST para criar a equipe
+//     const response = await axios.post('https://graph.microsoft.com/v1.0/teams', equipe, { headers });
+//     console.log('Equipe criada:', response.data);
+
+//     const contentLocation = response.headers['content-location'];
+//     const match = contentLocation.match(/\/teams\('([^']+)'\)/);
+//     const teamId = match ? match[1] : null;
+//     console.log('Team ID:', teamId);
+
+
+//     return { data: response.data, teamId };
+
+//     return response.data;
+//   } catch (error) {
+//     console.error('Erro ao criar equipe:', error.response ? error.response.data : error.message);
+//     throw error;
+//   }
+// }
+
+
 async function criarEquipe1(token, nome, codigo, user) {
-
-
   // Defina o corpo da solicitação
   const equipe = {
     "template@odata.bind": "https://graph.microsoft.com/v1.0/teamsTemplates('educationClass')",
-    "displayName": nome +' '+ codigo,
+    "displayName": nome + codigo,
     "description": codigo,
     "members": [
       {
         "@odata.type": "#microsoft.graph.aadUserConversationMember",
-        "roles": [
-          "owner"
-        ],
+        "roles": ["owner"],
         "user@odata.bind": `https://graph.microsoft.com/v1.0/users/${user}`
       }
     ]
@@ -73,15 +115,35 @@ async function criarEquipe1(token, nome, codigo, user) {
     const teamId = match ? match[1] : null;
     console.log('Team ID:', teamId);
 
+    if (teamId) {
+      // Agora obtenha o link de participação da equipe
+      const channelResponse = await axios.get(`https://graph.microsoft.com/v1.0/teams/${teamId}/channels/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
 
-    return { data: response.data, teamId };
+      const generalChannel = channelResponse.data.value.find(channel => channel.displayName === 'General' || channel.displayName === 'Geral');
+      if (generalChannel) {
+        const teamLink = generalChannel.webUrl;
+        console.log('Link da sala (canal geral):', teamLink);
 
-    return response.data;
+        // Retorne os dados da equipe e o link
+        return { data: response.data, teamId, teamLink };
+      } else {
+        throw new Error('Canal "Geral" não encontrado.');
+      }
+    } else {
+      throw new Error('Erro ao extrair o ID da equipe.');
+    }
+
   } catch (error) {
     console.error('Erro ao criar equipe:', error.response ? error.response.data : error.message);
     throw error;
   }
 }
+
 
 async function obterUsuarios(variavelEmail) {
   const token = await obterToken();
@@ -178,17 +240,22 @@ class TurmaController implements IController {
 
       if (nome && codigo && user != undefined) {
 
-        const equipe = await criarEquipe1(token, nome, codigo, user);
+         const equipe = await criarEquipe1(token, nome, codigo, user);
+
+        // const { data, teamId, teamLink } = await criarEquipe1(token, nome, codigo, user);
 
 
-        console.log("Equipe criada:", equipe);
+        console.log("Equipe criada:", equipe.teamLink);
 
-        if (equipe.teamId) {
-          console.log('fff'+ equipe.teamId)
+        const linkTurma = equipe.teamLink
+
+        if (equipe.teamId && linkTurma) {
+         
           await Turma.update(
             {
               criadoNoTeams: true,
-              idTurmaTeams: equipe.teamId
+              idTurmaTeams: equipe.teamId,
+              linkTurma,
             },
             { where: { id: turmaAtual.id } }
           );
@@ -203,10 +270,20 @@ class TurmaController implements IController {
       res.status(500).json({ error: error.message });
     }
   }
-  async find(req: Request, res: Response, next: NextFunction): Promise<any> {
-    throw new Error("Method not implemented.");
+  
+  async find (req: Request, res: Response, next: NextFunction): Promise<any> {
+    try {
+      const { id } = req.params
+
+      const registro = await Turma.findOne({ where: { id } })
+
+      res.status(200).json({ data: registro })
+    } catch (err) {
+      res.status(401).json({ message: err.errors[0].message })
+    }
   }
 
+  
   async update(req: Request, res: Response, next: NextFunction): Promise<any> {
     throw new Error("Method not implemented.");
   }
@@ -261,7 +338,7 @@ class TurmaController implements IController {
     const cpfFormatado = cpf.replace(/[.-]/g, '').substring(0, 3);
 
     // Criar o email
-    const email = `${primeiroNomeSemAcentos.toLowerCase()}${ultimoNomeSemAcentos.toLowerCase()}${cpfFormatado}@edu.pe.senac.br`;
+    const email = `${primeiroNomeSemAcentos.toLowerCase()}${ultimoNomeSemAcentos.toLowerCase()}${cpfFormatado}testeGTI@edu.pe.senac.br`;
 
     return email;
   }
@@ -416,6 +493,7 @@ class TurmaController implements IController {
                 T.TurmaSituacao,
                 T.TurmaDataDeInicio,
                 T.TurmaDataDeTermino,
+                T.TurmaAdiada,
                 M.TurmaCodigoFormatado
             FROM
                 [DATASET_SIG].dbo.Analise_Turma T
@@ -424,7 +502,8 @@ class TurmaController implements IController {
             INNER JOIN
                 [DATASET_SIG].dbo.Analise_Aluno A ON M.AlunoId = A.AlunoId
             WHERE
-               T.TurmaSituacao = 'Liberada para Matrícula' OR T.TurmaSituacao = 'Em Processo'
+              (T.TurmaSituacao = 'Liberada para Matrícula' OR T.TurmaSituacao = 'Em Processo')
+               
         `);
 
       const todosAlunos = await Aluno.findAll({});
@@ -484,14 +563,49 @@ class TurmaController implements IController {
           const cpf = item['AlunoCPF'] || 'Nome Indefinido';
           const email = this.criarEmail(nome, cpf);
 
-          const novoAluno = {
-            id: uuid(),
-            nome,
-            cpf,
-            email,
-            ativo: true,
-            criadoNoTeams: false,
-          };
+
+          let novoAluno;
+
+          if (item['AlunoEmail'] && item['AlunoEmail'].includes('@edu.pe.senac.br')) {
+            novoAluno = {
+              id: uuid(),
+              nome,
+              cpf,
+              email: item['AlunoEmail'],
+              emailCadastro: item['AlunoEmail'],
+              emailCriado: true,  // Se o e-mail tiver o domínio, marca como criado
+              emailCadastroESenac: true,
+              ativo: true,
+              criadoNoTeams: false,
+              alunoVinculado: false
+            };
+          } else {
+            novoAluno = {
+              id: uuid(),
+              nome,
+              cpf,
+              email,
+              emailCadastro: item['AlunoEmail'] || '',  // Garante que não seja null
+              emailCriado: false,  // Se não tiver o domínio, marca como não criado
+              emailCadastroESenac: false,
+              ativo: true,
+              criadoNoTeams: false,
+              alunoVinculado: false
+            };
+          }
+
+
+          // const novoAluno = {
+          //   id: uuid(),
+          //   nome,
+          //   cpf,
+          //   email,
+          //   emailCadastro : item['AlunoEmail'],
+          //   emailCriado:false,
+          //   ativo: true,
+          //   criadoNoTeams: false,
+          //   alunoVinculado:false
+          // };
 
           await Aluno.create(novoAluno);
 

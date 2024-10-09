@@ -29,11 +29,35 @@ Aluno.init({
     allowNull: false
   },
 
+  emailCadastro: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+
+  emailCadastroESenac: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+
+  emailCriado: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    
+  },
+
+  alunoVinculado: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    
+  },
+
     ativo: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
     
   },
+
+ 
 
 //   telefone: {
 //     type: DataTypes.STRING,

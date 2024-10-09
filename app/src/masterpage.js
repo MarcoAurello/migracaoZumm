@@ -107,7 +107,7 @@ const Masterpage = (props) => {
   useEffect(() => {
     function carregarPerfil() {
       setOpenLoadingDialog(true)
-      const token = getCookie('_token_task_manager')
+      const token = getCookie('_token_teams_manager')
       const params = {
         headers: {
           'Authorization': `Bearer ${token}`
