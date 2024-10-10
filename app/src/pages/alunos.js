@@ -13,6 +13,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 const getCookie = require('../utils/getCookie')
+const aguarde = require('../assets/aguarde.gif');
 
 const Alunos = (props) => {
 
@@ -26,9 +27,8 @@ const Alunos = (props) => {
   const [descricao, setDescricao] = useState('');
   const [caminho, setCaminho] = useState('');
   const [turmaSelecinada, setTurmaSelecinada] = useState([]);
-  const [progress, setProgress] = useState(0); // Estado para guardar o progresso
-  const [isLoading, setIsLoading] = useState(false); // Estado para gerenciar o loading
-  const [hasError, setHasError] = useState(false); // Estado para detectar erros
+  const [progress, setProgress] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
 
 
@@ -65,7 +65,7 @@ const Alunos = (props) => {
     if (e.target.checked) {
       // Se marcado, armazena o ID de todos os alunos sem email
       const todosIds = alunos
-        .filter(item => (item.Aluno.alunoVinculado === false &&
+        .filter(item => (item.Aluno.alunoVinculado === false && 
           item.Aluno.emailCriado === true
         ))
         .map(item => item.Aluno.email);
@@ -197,7 +197,7 @@ const Alunos = (props) => {
   }
 
 
-
+  
 
   const onVinculateEmailAll = (VincularTodosEmails) => {
     setOpenLoadingDialog(true);
@@ -208,32 +208,32 @@ const Alunos = (props) => {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({
+      body: JSON.stringify({ 
         VincularTodosEmails,
         idTurma: id // Certifique-se de que 'id' é o ID da turma
       })
     };
-
+  
     fetch(`${process.env.REACT_APP_DOMAIN_API}/api/aluno/vincularAllEmailInstitucional`, params)
       .then(response => {
         const { status } = response;
         response.json().then(data => {
           setOpenLoadingDialog(false);
-
+  
           if (status === 401) {
             alert(data.message);
             console.error('Erro de autenticação:', data.message);
           } else if (status === 200) {
             console.log('Resultado do backend:', data.resultados); // Exibe o resultado completo no console
             alert(`Processo concluído: ${data.message}`);
-
+            
             // Exibir os detalhes de cada aluno vinculado
             let mensagemResultado = "";
             data.resultados.forEach(resultado => {
               console.log(`Email: ${resultado.email}, Status: ${resultado.status}`);
               mensagemResultado += `Email: ${resultado.email}, Status: ${resultado.status}\n`;
             });
-
+  
             alert(mensagemResultado); // Exibe todos os resultados na tela
             window.location.reload(); // Recarrega a página após a operação
           }
@@ -249,10 +249,10 @@ const Alunos = (props) => {
         alert('Erro ao conectar com o servidor');
       });
   };
-
+  
 
   const onCreateEmail = (item) => {
-
+     
 
     setOpenLoadingDialog(true)
     const token = getCookie("_token_task_manager")
@@ -264,7 +264,7 @@ const Alunos = (props) => {
       },
       body: JSON.stringify({
         alunoId: item,
-        idTurma: id
+        idTurma : id
       })
     }
 
@@ -295,49 +295,49 @@ const Alunos = (props) => {
 
   }
 
-  // const onCreateEmailAll = (CriarTodosEmails) => {
-  //   setOpenLoadingDialog(true);
-  //   const token = getCookie("_token_task_manager");
-  //   const params = {
-  //     method: 'POST',
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //       'Authorization': `Bearer ${token}`
-  //     },
-  //     body: JSON.stringify({ CriarTodosEmails })
-  //   };
-
-  //   fetch(`${process.env.REACT_APP_DOMAIN_API}/api/aluno/createAllEmailInstitucional`, params)
-  //     .then(response => {
-  //       const { status } = response;
-  //       response.json().then(data => {
-  //         setOpenLoadingDialog(false);
-  //         if (status === 401) {
-  //           alert(data.message);
-  //           console.error('Erro de autenticação:', data.message);
-  //         } else if (status === 200) {
-  //           console.log('Resultado do backend:', data.resultados);
-  //           alert(`Processo concluído: ${data.message}`);
-  //           // Exibir os detalhes na tela ou em logs adicionais
-  //           data.resultados.forEach(resultado => {
-  //             console.log(`Aluno ID: ${resultado.alunoId}, Status: ${resultado.status}`);
-  //           });
-  //           window.location.reload();
-  //         }
-  //       }).catch(err => {
-  //         setOpenLoadingDialog(false);
-  //         console.error('Erro no parsing da resposta:', err);
-  //         alert('Erro ao processar resposta do servidor');
-  //       });
-  //     })
-  //     .catch(err => {
-  //       setOpenLoadingDialog(false);
-  //       console.error('Erro na requisição:', err);
-  //       alert('Erro ao conectar com o servidor');
-  //     });
-  // };
-
-
+  const onCreateEmailAll = (CriarTodosEmails) => {
+    setOpenLoadingDialog(true);
+    const token = getCookie("_token_task_manager");
+    const params = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ CriarTodosEmails })
+    };
+  
+    fetch(`${process.env.REACT_APP_DOMAIN_API}/api/aluno/createAllEmailInstitucional`, params)
+      .then(response => {
+        const { status } = response;
+        response.json().then(data => {
+          setOpenLoadingDialog(false);
+          if (status === 401) {
+            alert(data.message);
+            console.error('Erro de autenticação:', data.message);
+          } else if (status === 200) {
+            console.log('Resultado do backend:', data.resultados);
+            alert(`Processo concluído: ${data.message}`);
+            // Exibir os detalhes na tela ou em logs adicionais
+            data.resultados.forEach(resultado => {
+              console.log(`Aluno ID: ${resultado.alunoId}, Status: ${resultado.status}`);
+            });
+            window.location.reload();
+          }
+        }).catch(err => {
+          setOpenLoadingDialog(false);
+          console.error('Erro no parsing da resposta:', err);
+          alert('Erro ao processar resposta do servidor');
+        });
+      })
+      .catch(err => {
+        setOpenLoadingDialog(false);
+        console.error('Erro na requisição:', err);
+        alert('Erro ao conectar com o servidor');
+      });
+  };
+  
+  
 
 
 
@@ -369,64 +369,6 @@ const Alunos = (props) => {
   //   };
 
   // Chame a função carregarRegistro uma vez que o componente é montado
-
-  const onCreateEmailAll = (CriarTodosEmails) => {
-    setIsLoading(true); // Inicia o loading
-    setHasError(false); // Reseta o erro
-
-    // Fazer a requisição POST para iniciar o processo de criação de e-mails
-    const token = getCookie("_token_task_manager"); // Obtendo o token
-    fetch(`${process.env.REACT_APP_DOMAIN_API}/api/aluno/createAllEmailInstitucional`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({ CriarTodosEmails })
-    })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          // Após iniciar o processo no backend, começar a escutar as atualizações de progresso
-          const eventSource = new EventSource(`${process.env.REACT_APP_DOMAIN_API}/api/aluno/progressCreateAllEmail`);
-
-          eventSource.onmessage = (event) => {
-            const parsedData = JSON.parse(event.data);
-
-            // Atualiza a barra de progresso
-            if (parsedData.progress !== undefined) {
-              setProgress(parsedData.progress); // Atualiza o progresso no estado
-            }
-
-            // Verifica se o processo foi concluído
-            if (parsedData.message === 'Processo concluído') {
-              alert('Todos os e-mails foram criados com sucesso!');
-              eventSource.close();
-              setIsLoading(false); // Para o loading
-            }
-          };
-
-          // Se houver erro na conexão com o EventSource
-          eventSource.onerror = (err) => {
-            console.error('Erro ao conectar ao servidor:', err);
-            setHasError(true); // Indica erro
-            eventSource.close();
-            setIsLoading(false); // Para o loading
-          };
-        } else {
-          alert('Erro ao iniciar o processo.');
-          setIsLoading(false); // Para o loading
-        }
-      })
-      .catch(err => {
-        console.error('Erro ao fazer a requisição:', err);
-        setHasError(true); // Define erro
-        setIsLoading(false); // Para o loading
-      });
-  };
-
-
-
   useEffect(() => {
     carregarRegistro();
     carregarEscolhido()
@@ -455,7 +397,7 @@ const Alunos = (props) => {
         transition: 'background-color 0.3s ease'
       }} onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/home/`}>
         home</button>
-
+      
       <hr></hr>
 
 
@@ -541,24 +483,24 @@ const Alunos = (props) => {
                 Selecionar todos
               </label><br></br>
 
-              {CriarTodosEmails.length > 0 ?
-                <button
-                  onClick={() => onCreateEmailAll(CriarTodosEmails)}
-                  style={{
-                    padding: '10px 20px',
-                    marginTop: '12px',
-                    backgroundColor: 'red',
-                    color: '#FFFFFF',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    alignSelf: 'flex-end',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  criar emails @edu.pe.senac para todos
-                </button> : ''}
+              {CriarTodosEmails.length > 0?
+               <button
+               onClick={() => onCreateEmailAll(CriarTodosEmails)}
+               style={{
+                 padding: '10px 20px',
+                 marginTop: '12px',
+                 backgroundColor: 'red',
+                 color: '#FFFFFF',
+                 border: 'none',
+                 borderRadius: '6px',
+                 cursor: 'pointer',
+                 alignSelf: 'flex-end',
+                 fontSize: '14px',
+                 fontWeight: 'bold',
+               }}
+             >
+               criar emails @edu.pe.senac para todos
+             </button>:''}
             </div>
 
             {alunos
@@ -640,24 +582,24 @@ const Alunos = (props) => {
                 Selecionar todos
               </label><br></br>
 
-              {VincularTodosEmails.length > 0 ?
-                <button
-                  onClick={() => onVinculateEmailAll(VincularTodosEmails)}
-                  style={{
-                    padding: '10px 20px',
-                    marginTop: '12px',
-                    backgroundColor: 'red',
-                    color: '#FFFFFF',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    alignSelf: 'flex-end',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  vincular alunos a turma TEAMS
-                </button> : ''}
+              {VincularTodosEmails.length > 0?
+               <button
+               onClick={() => onVinculateEmailAll(VincularTodosEmails)}
+               style={{
+                 padding: '10px 20px',
+                 marginTop: '12px',
+                 backgroundColor: 'red',
+                 color: '#FFFFFF',
+                 border: 'none',
+                 borderRadius: '6px',
+                 cursor: 'pointer',
+                 alignSelf: 'flex-end',
+                 fontSize: '14px',
+                 fontWeight: 'bold',
+               }}
+             >
+               vincular alunos a turma TEAMS
+             </button>:''}
             </div>
             {alunos
               .filter(item => item.Aluno.emailCriado === true &&
@@ -776,21 +718,6 @@ const Alunos = (props) => {
 
       </div>
 
-      <div>
-        {/* Renderiza a barra de progresso se isLoading for true */}
-        {isLoading && (
-          <div>
-            <p>Progresso: {progress}%</p>
-            <progress value={progress} max="100"></progress> {/* Barra de progresso */}
-          </div>
-        )}
-
-        {/* Mostra erro se houver */}
-        {hasError && <p style={{ color: 'red' }}>Ocorreu um erro ao criar os e-mails.</p>}
-
-        {/* Botão para iniciar o processo */}
-        <button onClick={() => onCreateEmailAll(['email1', 'email2'])}>Criar Emails</button>
-      </div>
 
 
 
@@ -799,16 +726,138 @@ const Alunos = (props) => {
 
 
 
+      {/* <SpeedDial variant="outlined" onClick={() => setOpen(true)}
+        ariaLabel="Nova Tarefa"
+        sx={{ position: 'fixed', bottom: 16, right: 16 }}
+        icon={<EditIcon />} /> */}
 
+      {/* <Dialog open={open} >
+        <DialogTitle>Abertura de Chamado</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+
+          </DialogContentText>
+
+
+
+          <FormControl fullWidth size="small">
+            <InputLabel id="demo-select-small">Titulo do Chamado</InputLabel>
+            <hr></hr>
+            <TextField
+
+              autoFocus
+              margin="dense"
+              id="tituloChamado"
+              // label="Titulo do chamado"
+              type="text"
+              name="tituloChamado"
+              fullWidth
+              variant="standard"
+              value={titulo}
+              onChange={e => setTitulo(e.target.value)}
+
+            />
+
+          </FormControl>
+
+          <p></p>
+
+
+          <FormControl fullWidth size="small">
+            <InputLabel id="demo-select-small">Descrição do Chamado</InputLabel>
+            <hr></hr>
+            <TextField
+              autoFocus
+              margin="dense"
+              id="descricao"
+              // label="Descrição do chamado"
+              type="text"
+              name="descricao"
+              fullWidth
+              variant="standard"
+              rows={4}
+              multiline
+              value={descricao}
+              onChange={e => setDescricao(e.target.value)}
+
+            />
+
+          </FormControl>
+
+          <p></p>
+
+          <FormControl fullWidth size="small">
+            <InputLabel id="demo-select-small">Unidade</InputLabel>
+            <Select
+              fullWidth
+              labelId="demo-select-small"
+              id="demo-select-small"
+              label="Unidade"
+              value='ssss'>
+              <MenuItem >
+                <em>Nenhum</em>
+              </MenuItem>
+              <MenuItem >
+                aaaaaa
+              </MenuItem>
+
+            </Select>
+          </FormControl>
+
+
+
+          <TextField
+            autoFocus
+            margin="dense"
+            id="caminho"
+            label="Envie uma imagem"
+            type="file"
+            name="caminho"
+            fullWidth
+            variant="standard"
+            value={caminho}
+            onChange={e => setCaminho(e.target.value)}
+          />
+
+
+
+
+
+
+
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpen(false)}>Cancelar</Button>
+          <Button onClick={onSave}>Salvar</Button>
+        </DialogActions>
+      </Dialog> */}
 
       <Dialog open={openLoadingDialog}>
-        Aguarde, estamos trabalhando nisso...
+        Tempo médio do serviço e de 1 minuto
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: 120, height: 120 }}>
-          <CircularProgress />
+        <img src={aguarde} height={100} alt="Logo" />
         </div>
       </Dialog>
+      {/* <Dialog
+        open={openMessageDialog}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description">
+        <DialogTitle id="alert-dialog-title">
+          Atenção
+        </DialogTitle>
+        <DialogContent style={{ width: 400 }}>
+          <DialogContentText id="alert-dialog-description">
+            {message}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions >
 
-      
+          <Button onClick={() => setOpenMessageDialog(false)}>
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog> */}
+
 
     </div>
   );

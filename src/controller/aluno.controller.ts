@@ -459,124 +459,62 @@ class AlunoController implements IController {
     }
   }
 
-  // async createAllEmailInstitucional(req: any, res: Response, next: NextFunction): Promise<any> {
-  //   try {
-  //     const { CriarTodosEmails } = req.body;
-
-  //     if (!CriarTodosEmails || CriarTodosEmails.length === 0) {
-  //       return res.status(400).json({ message: "Nenhum ID fornecido." });
-  //     }
-
-  //     const resultados = [];
-
-  //     for (const alunoId of CriarTodosEmails) {
-  //       if (alunoId) {
-  //         try {
-  //           const aluno = await Aluno.findOne({ where: { id: alunoId } });
-
-  //           if (!aluno) {
-  //             console.error(`Aluno com ID ${alunoId} não encontrado.`);
-  //             resultados.push({ alunoId, status: 'Aluno não encontrado' });
-  //             continue; // Skip to the next alunoId
-  //           }
-
-  //           const email = aluno.email;
-  //           const mailNickname = email.split('@')[0];
-  //           const senhaGerada = gerarSenha();
-
-  //           const usuarioCriado = await criarEmailInstitucional({
-  //             displayName: aluno.nome,
-  //             mailNickname,
-  //             userPrincipalName: aluno.email,
-  //             password: senhaGerada
-  //           });
-
-  //           if (usuarioCriado) {
-  //             await Aluno.update({ emailCriado: true }, { where: { id: aluno.id } });
-
-  //             const txEmail = `
-  //                           <b>Email Senac Criado.</b><br>
-  //                           Email: <strong>${aluno.email}</strong><br>
-  //                           Senha: <strong>${senhaGerada}</strong><br>
-  //                       `;
-  //             emailUtils.enviar(aluno.emailCadastro, txEmail);
-
-  //             resultados.push({ alunoId, status: 'Email criado com sucesso' });
-  //           } else {
-  //             resultados.push({ alunoId, status: 'Erro na criação do email' });
-  //           }
-  //         } catch (error) {
-  //           console.error(`Erro ao processar aluno ID ${alunoId}:`, error);
-  //           resultados.push({ alunoId, status: 'Erro no processamento' });
-  //         }
-  //       }
-  //     }
-
-  //     console.log(resultados); // Log no console do servidor
-  //     res.status(200).json({ message: "Processo concluído", resultados });
-
-  //   } catch (err) {
-  //     console.error('Erro no servidor:', err);
-  //     res.status(500).json({ message: 'Erro no servidor', error: err.message });
-  //   }
-  // }
-
-  async createAllEmailInstitucional(req: any, res: Response): Promise<any> {
+  async createAllEmailInstitucional(req: any, res: Response, next: NextFunction): Promise<any> {
     try {
       const { CriarTodosEmails } = req.body;
-  
+
       if (!CriarTodosEmails || CriarTodosEmails.length === 0) {
         return res.status(400).json({ message: "Nenhum ID fornecido." });
       }
-  
-      res.setHeader('Content-Type', 'text/event-stream');
-      res.setHeader('Cache-Control', 'no-cache');
-      res.setHeader('Connection', 'keep-alive');
-  
-      const totalEmails = CriarTodosEmails.length;
-      let processedEmails = 0;
+
       const resultados = [];
-  
+
       for (const alunoId of CriarTodosEmails) {
         if (alunoId) {
           try {
             const aluno = await Aluno.findOne({ where: { id: alunoId } });
-  
+
             if (!aluno) {
+              console.error(`Aluno com ID ${alunoId} não encontrado.`);
               resultados.push({ alunoId, status: 'Aluno não encontrado' });
-              continue;
+              continue; // Skip to the next alunoId
             }
-  
+
+            const email = aluno.email;
+            const mailNickname = email.split('@')[0];
             const senhaGerada = gerarSenha();
+
             const usuarioCriado = await criarEmailInstitucional({
               displayName: aluno.nome,
-              mailNickname: aluno.email.split('@')[0],
+              mailNickname,
               userPrincipalName: aluno.email,
               password: senhaGerada
             });
-  
+
             if (usuarioCriado) {
               await Aluno.update({ emailCriado: true }, { where: { id: aluno.id } });
-              emailUtils.enviar(aluno.emailCadastro, `Email criado: ${aluno.email}`);
+
+              const txEmail = `
+                            <b>Email Senac Criado.</b><br>
+                            Email: <strong>${aluno.email}</strong><br>
+                            Senha: <strong>${senhaGerada}</strong><br>
+                        `;
+              emailUtils.enviar(aluno.emailCadastro, txEmail);
+
               resultados.push({ alunoId, status: 'Email criado com sucesso' });
             } else {
               resultados.push({ alunoId, status: 'Erro na criação do email' });
             }
           } catch (error) {
+            console.error(`Erro ao processar aluno ID ${alunoId}:`, error);
             resultados.push({ alunoId, status: 'Erro no processamento' });
           }
-  
-          processedEmails++;
-          const progress = Math.floor((processedEmails / totalEmails) * 100);
-  
-          // Enviar atualização de progresso para o frontend
-          res.write(`data: ${JSON.stringify({ progress })}\n\n`);
         }
       }
-  
-      // Enviar mensagem final quando o processo for concluído
-      res.write(`data: ${JSON.stringify({ message: "Processo concluído", resultados })}\n\n`);
-      res.end();
+
+      console.log(resultados); // Log no console do servidor
+      res.status(200).json({ message: "Processo concluído", resultados });
+
     } catch (err) {
       console.error('Erro no servidor:', err);
       res.status(500).json({ message: 'Erro no servidor', error: err.message });

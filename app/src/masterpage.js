@@ -359,14 +359,14 @@ const Masterpage = (props) => {
         onClose={() => setOpenDrawer(false)}>
         <Box sx={{ width: 250 }} role="presentation">
           <List>
-            <ListItem disablePadding>
+            {/* <ListItem disablePadding>
               <ListItemButton onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/home/`}>
                 <ListItemIcon>
                   <PlaylistAddCheckIcon />
                 </ListItemIcon>
                 <ListItemText primary='Minhas Atividades' />
               </ListItemButton>
-            </ListItem>
+            </ListItem> */}
             {/* <ListItem disablePadding>
               <ListItemButton onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/home/`}>
                 <ListItemIcon>
@@ -375,14 +375,14 @@ const Masterpage = (props) => {
                 <ListItemText primary='Chamados Abertos' />
               </ListItemButton>
             </ListItem> */}
-            <ListItem disablePadding>
+            {/* <ListItem disablePadding>
               <ListItemButton>
                 <ListItemIcon>
                   <PeopleIcon />
                 </ListItemIcon>
                 <ListItemText primary='Equipe' onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/equipe`} />
               </ListItemButton>
-            </ListItem>
+            </ListItem> */}
             {
               logged && logged.validado && logged.Perfil.nome === PerfilUtils.Administrador ?
               <>
