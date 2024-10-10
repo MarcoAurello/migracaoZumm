@@ -140,14 +140,6 @@ const Alunos = (props) => {
             setOpenLoadingDialog(false)
             setTurmaSelecinada(data.data)
 
-
-            // setCreateAd(data.data.createdAt)
-
-
-
-
-
-
           }
         }).catch(err => setOpenLoadingDialog(false))
       })
@@ -402,13 +394,7 @@ const Alunos = (props) => {
         transition: 'background-color 0.3s ease'
       }} onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/home/`}>
         home</button>
-      <button style={{
-        padding: '8px 16px', margin: '0 5px',
-        backgroundColor: '#007bff', color: '#fff', border: 'none',
-        borderRadius: '4px', cursor: 'pointer',
-        transition: 'background-color 0.3s ease'
-      }} onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}>
-        Alunos Migrados</button>
+      
       <hr></hr>
 
 

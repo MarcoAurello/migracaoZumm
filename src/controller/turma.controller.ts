@@ -11,6 +11,8 @@ import TurmaAluno from '../model/turmaaluno.model';
 const qs = require('qs');
 const axios = require('axios');
 import turmaalunoController from './turmaaluno.controller';
+import admTurmaController from './admTurma.controller';
+import AdmTurma from '../model/admTurma.model';
 const { uuid } = require('uuidv4')
 const getAccessToken = require('../utils/authConfig');
 const { Client } = require('@microsoft/microsoft-graph-client');
@@ -249,6 +251,12 @@ class TurmaController implements IController {
 
         const linkTurma = equipe.teamLink
 
+        const tutor = await AdmTurma.findOne({
+          where: { email: emailAdm }
+  
+        });
+  
+
         if (equipe.teamId && linkTurma) {
          
           await Turma.update(
@@ -256,6 +264,7 @@ class TurmaController implements IController {
               criadoNoTeams: true,
               idTurmaTeams: equipe.teamId,
               linkTurma,
+              fkTutor: tutor?.id,
             },
             { where: { id: turmaAtual.id } }
           );
@@ -270,20 +279,39 @@ class TurmaController implements IController {
       res.status(500).json({ error: error.message });
     }
   }
-  
-  async find (req: Request, res: Response, next: NextFunction): Promise<any> {
+
+  async find(req: Request, res: Response, next: NextFunction): Promise<any> {
     try {
-      const { id } = req.params
-
-      const registro = await Turma.findOne({ where: { id } })
-
-      res.status(200).json({ data: registro })
+      const { id } = req.params;
+  
+      let registro = null; // Initialize as null
+  
+      registro = await Turma.findOne({ where: { id } });
+  
+      console.log('235' + JSON.stringify(registro));
+  
+      // Check if registro is null
+      if (!registro) {
+        registro = await Turma.findAll({
+          where: { fkTutor: id },
+        });
+      }
+  
+      console.log('632' + JSON.stringify(registro));
+  
+      res.status(200).json({ data: registro });
     } catch (err) {
-      res.status(401).json({ message: err.errors[0].message })
+      // Improved error handling
+      const message = err.errors && err.errors.length > 0
+        ? err.errors[0].message
+        : 'An error occurred';
+      
+      res.status(401).json({ message });
     }
   }
-
   
+  
+
   async update(req: Request, res: Response, next: NextFunction): Promise<any> {
     throw new Error("Method not implemented.");
   }
@@ -572,7 +600,8 @@ class TurmaController implements IController {
               nome,
               cpf,
               email: item['AlunoEmail'],
-              emailCadastro: item['AlunoEmail'],
+              // emailCadastro: item['AlunoEmail'],
+              emailCadastro: 'marconunes@pe.senac.br',
               emailCriado: true,  // Se o e-mail tiver o domínio, marca como criado
               emailCadastroESenac: true,
               ativo: true,
@@ -585,7 +614,8 @@ class TurmaController implements IController {
               nome,
               cpf,
               email,
-              emailCadastro: item['AlunoEmail'] || '',  // Garante que não seja null
+              // emailCadastro: item['AlunoEmail'] || '', 
+              emailCadastro: 'marconunes@pe.senac.br',
               emailCriado: false,  // Se não tiver o domínio, marca como não criado
               emailCadastroESenac: false,
               ativo: true,

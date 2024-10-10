@@ -13,6 +13,9 @@ import routerAlunoTeams from './router/alunoteams.router'
 import routerTurmaAluno from './router/turmaaluno.router'
 import routerAluno from './router/aluno.router'
 import routerTurma from './router/turma.router'
+import routerAdmTurma from './router/admTurma.router'
+
+
 
 import protocolo from './utils/protocolo.utils'
 
@@ -45,7 +48,9 @@ class Server {
     this.application.use('/api/alunoteams/', routerAlunoTeams)
     this.application.use('/api/turmaAluno/', routerTurmaAluno)
     this.application.use('/api/aluno/', routerAluno)
+    this.application.use('/api/admTurma/', routerAdmTurma)
     this.application.use('/api/turma/', routerTurma)
+    // this.application.use('/api/Gestor/', routerTurma)
     this.application.use(express.static(path.resolve('app', 'build')))
     this.application.get('/*', (req, res) =>
       res.sendFile(path.resolve('app', 'build', 'index.html'))

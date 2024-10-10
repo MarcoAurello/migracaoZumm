@@ -1,7 +1,8 @@
-import { CircularProgress, FormControl, InputLabel, MenuItem, Select, SpeedDial } from "@mui/material";
+import { CircularProgress, FormControl, InputLabel, MenuItem, Select, SpeedDial, Switch } from "@mui/material";
 
 import EditIcon from '@mui/icons-material/Edit';
 import TaskAluno from '../components/task-aluno'
+import BuildCircleIcon from '@mui/icons-material/BuildCircle';
 
 
 import React, { useEffect, useState } from 'react';
@@ -21,6 +22,7 @@ const Home = (props) => {
 
   const [titulo, setTitulo] = useState('');
   const [descricao, setDescricao] = useState('');
+  const [perfilVisivelAtual, setPerfilVisivelAtual] = useState(false)
   const [caminho, setCaminho] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -40,9 +42,18 @@ const Home = (props) => {
   const [turmaSelecionada, setTurmaSelecionada] = useState([]);
   const [modelAdmTeams, setModelAdmTeams] = useState('');
   const [emailAdm, setEmailAdm] = useState('');
+  const [nomeAdm, setNomeAdm] = useState('');
+  const [cadEmailAdm, setCadEmailAdm] = useState('');
+  const [unidadeAdm, setUnidadeAdm] = useState('');
+
+
   const [idEquipe, setIdEquipe] = useState('');
+  const [responsavel, setResponsavel] = useState([])
+  const [unidades, setUnidades] = useState([])
 
   useEffect(() => {
+    carregarResponsavel()
+    carregarUnidades()
 
     let timeoutId;
 
@@ -57,7 +68,7 @@ const Home = (props) => {
     // if(turmaSelecionada){
     //   alert(JSON.stringify(turmaSelecionada))
     // }
-  }, [pesquisa,]);
+  }, [pesquisa,responsavel]);
 
 
 
@@ -93,6 +104,64 @@ const Home = (props) => {
     });
   }
 
+  function carregarResponsavel() {
+    // setOpenLoadingDialog(true)
+    const token = getCookie('_token_task_manager')
+    const params = {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    }
+    fetch(`${process.env.REACT_APP_DOMAIN_API}/api/admTurma`, params)
+      .then(response => {
+        const { status } = response
+        response.json().then(data => {
+          setOpenLoadingDialog(false)
+          if (status === 401) {
+          } else if (status === 200) {
+            // alert(data.data.nome)
+            // if(data.data.nome === 'DEP'){
+            setResponsavel(data.data)
+            // }
+
+          }
+        }).catch(err => setOpenLoadingDialog(true))
+      })
+  }
+
+  function carregarUnidades() {
+    // setOpenLoadingDialog(true)
+    const token = getCookie('_token_task_manager')
+    const params = {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    }
+    fetch(`${process.env.REACT_APP_DOMAIN_API}/api/unidade`, params)
+      .then(response => {
+        const { status } = response
+        response.json().then(data => {
+          setOpenLoadingDialog(false)
+          if (status === 401) {
+          } else if (status === 200) {
+            // alert(data.data.nome)
+            // if(data.data.nome === 'DEP'){
+            setUnidades(data.data)
+            // }
+
+          }
+        }).catch(err => setOpenLoadingDialog(true))
+      })
+  }
+
+  const handleChangeVisivel = (event) => {
+
+    setPerfilVisivelAtual(!perfilVisivelAtual)
+
+
+  };
+
+
 
   const handleCriarEquipe = async () => {
     setModelAdmTeams(false)
@@ -120,6 +189,41 @@ const Home = (props) => {
     }
   };
 
+  const cadastrarAdministrador = () => {
+    setOpenLoadingDialog(true)
+    const token = getCookie('_token_task_manager')
+    const params = {
+      method: 'POST', 
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ 
+        cadEmailAdm,
+        unidadeAdm,
+        nomeAdm
+      }) 
+    }
+
+    fetch(`${process.env.REACT_APP_DOMAIN_API}/api/admTurma/`, params)
+      .then(response => {
+        const { status } = response
+        response.json().then(data => {
+          setOpenLoadingDialog(false)
+          if(status === 401) {  
+            alert(data.message)
+            setOpenMessageDialog(true)
+        
+          } else if(status === 200) {
+            alert(data.message)
+            setOpenMessageDialog(true)
+           
+          }
+        }).catch(err => setOpenLoadingDialog(true))
+      })
+  }
+
+ 
   const handleCriarEquipe1 = async (turmaId) => {
 
     setModelAdmTeams(true)
@@ -184,20 +288,21 @@ const Home = (props) => {
 
 
       <hr></hr>
-      <button style={{
+      {/* <button style={{
         padding: '8px 16px', margin: '0 5px',
         backgroundColor: '#007bff', color: '#fff', border: 'none',
         borderRadius: '4px', cursor: 'pointer',
         transition: 'background-color 0.3s ease'
       }} onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/home/`}>
-        home</button>
+        home</button> */}
       <button style={{
         padding: '8px 16px', margin: '0 5px',
         backgroundColor: '#007bff', color: '#fff', border: 'none',
         borderRadius: '4px', cursor: 'pointer',
         transition: 'background-color 0.3s ease'
-      }} onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}>
-        Cadastrar Gestor de Turma</button>
+      }} onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/config/`}>
+        <BuildCircleIcon/>
+        </button>
       <hr></hr>
 
 
@@ -221,103 +326,103 @@ const Home = (props) => {
         onChange={(e) => setPesquisa(e.target.value)}
       />
 
-{turmaSelecionada.length > 0 ? (
-  <center>
-    <table
-      className="table table-striped"
-      style={{
-        border: '1px solid #ccc', // Borda cinza
-        boxShadow: '2px 2px 5px rgba(0, 0, 0, 0.1)', // Sombreado sutil
-        borderRadius: '10px', // Bordas arredondadas
-        width: '100%',
-        backgroundColor: '#FFFFFF', // Fundo branco para contraste
-        color: '#333', // Cor de texto para boa legibilidade
-      }}
-    >
-      <thead>
-        <tr style={{ backgroundColor: '#0078D4', color: '#FFFFFF', fontSize: '18px', textAlign: 'left' }}>
-          <td colSpan="5" style={{ padding: '10px', fontWeight: 'bold' }}>Turmas</td>
-        </tr>
-        <tr style={{ backgroundColor: '#F3F2F1', color: '#333', fontSize: '16px' }}>
-          <td style={{ padding: '10px' }}>Turma</td>
-          <td style={{ padding: '10px' }}>Código</td>
-          <td style={{ padding: '10px' }}>Ações</td>
-        </tr>
-      </thead>
-      <tbody>
-        {turmaSelecionada.map((item, index) => (
-          <tr key={index} style={{ borderBottom: '1px solid #E1E1E1', color: '#333' }}>
-            <td style={{ padding: '10px' }}>{item.turmaNome ? item.turmaNome : ''}</td>
-            <td style={{ padding: '10px' }}>{item.codigoFormatado ? item.codigoFormatado : ''}</td>
-            <td style={{ padding: '10px', textAlign: 'center' }}>
-              <div>
-                {item.criadoNoTeams === false ? (
-                  <div>
-                    {isLoading && (
-                      <div style={overlayStyle}>
-                        <div style={spinnerStyle}></div>
-                        <p style={{ color: 'white', fontSize: '15px', marginTop: '10px' }}>Criando Equipe no Teams...</p>
-                      </div>
+      {turmaSelecionada.length > 0 ? (
+        <center>
+          <table
+            className="table table-striped"
+            style={{
+              border: '1px solid #ccc', // Borda cinza
+              boxShadow: '2px 2px 5px rgba(0, 0, 0, 0.1)', // Sombreado sutil
+              borderRadius: '10px', // Bordas arredondadas
+              width: '100%',
+              backgroundColor: '#FFFFFF', // Fundo branco para contraste
+              color: '#333', // Cor de texto para boa legibilidade
+            }}
+          >
+            <thead>
+              <tr style={{ backgroundColor: '#0078D4', color: '#FFFFFF', fontSize: '18px', textAlign: 'left' }}>
+                <td colSpan="5" style={{ padding: '10px', fontWeight: 'bold' }}>Turmas</td>
+              </tr>
+              <tr style={{ backgroundColor: '#F3F2F1', color: '#333', fontSize: '16px' }}>
+                <td style={{ padding: '10px' }}>Turma</td>
+                <td style={{ padding: '10px' }}>Código</td>
+                <td style={{ padding: '10px' }}>Ações</td>
+              </tr>
+            </thead>
+            <tbody>
+              {turmaSelecionada.map((item, index) => (
+                <tr key={index} style={{ borderBottom: '1px solid #E1E1E1', color: '#333' }}>
+                  <td style={{ padding: '10px' }}>{item.turmaNome ? item.turmaNome : ''}</td>
+                  <td style={{ padding: '10px' }}>{item.codigoFormatado ? item.codigoFormatado : ''}</td>
+                  <td style={{ padding: '10px', textAlign: 'center' }}>
+                    <div>
+                      {item.criadoNoTeams === false ? (
+                        <div>
+                          {isLoading && (
+                            <div style={overlayStyle}>
+                              <div style={spinnerStyle}></div>
+                              <p style={{ color: 'white', fontSize: '15px', marginTop: '10px' }}>Criando Equipe no Teams...</p>
+                            </div>
+                          )}
+                          <button
+                            style={{
+                              padding: '8px 16px',
+                              backgroundColor: '#0078D4',
+                              color: '#FFFFFF',
+                              border: 'none',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontSize: '14px',
+                              fontWeight: '600'
+                            }}
+                            onClick={() => handleCriarEquipe1(item.id)}
+                          >
+                            Criar equipe no Teams
+                          </button>
+                        </div>
+                      ) : (
+                        <a
+                          style={{
+                            padding: '8px 16px',
+
+                            color: '#6CC24A',
+                            border: 'none',
+                            borderRadius: '4px',
+
+                          }}
+                        >
+                          Turma Criada
+                        </a>
+                      )}
+                    </div>
+                  </td>
+                  <td style={{ padding: '10px', textAlign: 'center' }}>
+                    {item.criadoNoTeams === false ? "" : (
+                      <button
+                        style={{
+                          padding: '8px 16px',
+                          backgroundColor: '#E57373',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          fontWeight: '600'
+                        }}
+                        onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/alunos/${item.id}`}
+                      >
+                        Ver Alunos da Turma
+                      </button>
                     )}
-                    <button
-                      style={{
-                        padding: '8px 16px',
-                        backgroundColor: '#0078D4',
-                        color: '#FFFFFF',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        fontWeight: '600'
-                      }}
-                      onClick={() => handleCriarEquipe1(item.id)}
-                    >
-                      Criar equipe no Teams
-                    </button>
-                  </div>
-                ) : (
-                  <a
-                    style={{
-                      padding: '8px 16px',
-                    
-                      color: '#6CC24A',
-                      border: 'none',
-                      borderRadius: '4px',
-                     
-                    }}
-                  >
-                    Turma Criada
-                  </a>
-                )}
-              </div>
-            </td>
-            <td style={{ padding: '10px', textAlign: 'center' }}>
-              {item.criadoNoTeams === false ? "" : (
-                <button
-                  style={{
-                    padding: '8px 16px',
-                    backgroundColor: '#E57373',
-                    color: '#FFFFFF',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    fontWeight: '600'
-                  }}
-                  onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/alunos/${item.id}`}
-                >
-                  Ver Alunos da Turma
-                </button>
-              )}
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </center>
-) : (
-  <p style={{ textAlign: 'center', color: '#999' }}>Nenhuma turma encontrada.</p>
-)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </center>
+      ) : (
+        <p style={{ textAlign: 'center', color: '#999' }}>Nenhuma turma encontrada.</p>
+      )}
 
 
 
@@ -328,9 +433,35 @@ const Home = (props) => {
         icon={<EditIcon />} /> */}
 
       <Dialog open={modelAdmTeams} >
-        <DialogTitle>Informe o email do responsável pela turma</DialogTitle>
+        <Button style={{
+          color: 'red',
+          position: 'absolute',
+          right: 0,
+          top: 0
+        }}
+          onClick={() => setModelAdmTeams(false)}>x</Button>
+        <DialogTitle>Selecione o responsável pela turma no TEAMS</DialogTitle>
+
         <DialogContent>
           <DialogContentText>
+
+            <FormControl fullWidth size="small">
+
+              <InputLabel id="demo-select-small">Funcionários</InputLabel>
+              <Select
+                fullWidth
+                labelId="demo-select-small"
+                id="demo-select-small"
+                label="Unidade"
+                value={emailAdm}>
+
+                {responsavel.map((item, index) => {
+
+                  return <MenuItem key={index} value={item.id} onClick={(e) => [setEmailAdm(item.email)]}>{item.nome}-{item.unidade}</MenuItem>
+
+                })}
+              </Select>
+            </FormControl>
 
           </DialogContentText>
 
@@ -348,6 +479,7 @@ const Home = (props) => {
               type="text"
               name="Email"
               fullWidth
+              disabled
               variant="standard"
               value={emailAdm}
               onChange={e => setEmailAdm(e.target.value)}
@@ -355,6 +487,12 @@ const Home = (props) => {
             />
 
           </FormControl>
+
+          {emailAdm && idEquipe
+            ?
+            <Button onClick={() => handleCriarEquipe()}>Criar equipe </Button>
+            : ''}
+            <p></p>
 
 
 
@@ -364,13 +502,82 @@ const Home = (props) => {
 
 
         <DialogActions>
-          {emailAdm && idEquipe
+
+
+
+
+          <Switch
+            label="Cadastrar Gestor turma TEAMS"
+            checked={perfilVisivelAtual}
+            onChange={handleChangeVisivel}
+            inputProps={{ 'aria-label': 'controlled' }}
+          />
+
+          {perfilVisivelAtual ?
+           <div style={{ 
+            display: 'grid', 
+            gap: '20px', 
+            width: '100%', 
+            maxWidth: '500px', 
+            padding: '20px', 
+            margin: '0 auto', 
+            backgroundColor: '#f4f4f9', 
+            borderRadius: '8px', 
+            boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)' 
+          }}>
+            Cadastre funcionários para administrar turmas TEAMS<hr></hr>
+            <TextField
+              id="Nome"
+              label="Email Institucional"
+              type="text"
+              name="Nome"
+           
+              value={cadEmailAdm}
+              onChange={e => setCadEmailAdm(e.target.value)}
+              fullWidth
+              InputLabelProps={{ style: { color: '#555' } }}
+            />
+            
+            <TextField
+              id="Email"
+              label="Nome"
+              type="text"
+              name="Email"
+           
+              value={nomeAdm}
+              onChange={e => setNomeAdm(e.target.value)}
+              fullWidth
+              InputLabelProps={{ style: { color: '#555' } }}
+            />
+          
+            <FormControl fullWidth size="small">
+              <InputLabel id="demo-select-small" style={{ color: '#555' }}>Unidade</InputLabel>
+              <Select
+                fullWidth
+                labelId="demo-select-small"
+                id="demo-select-small"
+                value={unidadeAdm}
+                onChange={(e) => setUnidadeAdm(e.target.value)}
+                style={{ color: '#333' }}
+              >
+                {unidades.map((lista, key) => (
+                  <MenuItem key={key} value={lista.nome}>
+                    {lista.nome}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            {cadEmailAdm && unidadeAdm && nomeAdm
             ?
-            <Button onClick={() => handleCriarEquipe()}>Criar equipe </Button>
+            <Button onClick={() => cadastrarAdministrador()}>Cadastrar Administrador de turmas </Button>
             : ''}
+          </div>
+          
+            : 'cadastrar novo administrador de turmas TEAMS'}
 
 
-          <Button onClick={() => setModelAdmTeams(false)}>Cancelar</Button>
+
 
         </DialogActions>
       </Dialog>

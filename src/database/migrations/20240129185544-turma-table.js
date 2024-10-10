@@ -74,6 +74,12 @@ module.exports = {
         allowNull: true
       },
 
+      fkTutor: {
+        type: Sequelize.UUID,
+        allowNull: true
+      },
+
+
       // flagDemandado: {
       //   type: Sequelize.BOOLEAN,
       //   allowNull: false,

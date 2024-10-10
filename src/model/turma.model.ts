@@ -5,6 +5,7 @@ import connection from './connection'
 import jwt from 'jsonwebtoken'
 
 import Unidade from './unidade.model'
+import Tutor from './admTurma.model'
 
 class Turma extends Model { }
 
@@ -55,6 +56,10 @@ Turma.init({
     type: DataTypes.UUID,
     allowNull: true
   },
+  fkTutor: {
+    type: DataTypes.UUID,
+    allowNull: true
+  },
 
 }, {
   sequelize: connection,
@@ -62,8 +67,8 @@ Turma.init({
 
 })
 
-// Turma.belongsTo(Unidade, { foreignKey: 'fkUnidade' })
-// Unidade.hasMany(Turma, { foreignKey: 'fkUnidade' })
+Turma.belongsTo(Tutor, { foreignKey: 'fkTutor' })
+Tutor.hasMany(Turma, { foreignKey: 'fkTutor' })
 
 
 export default Turma

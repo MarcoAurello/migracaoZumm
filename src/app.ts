@@ -22,7 +22,7 @@ app.listen(PORT, () => {
   // await iniciarMigracao();
 
   // Agendar a migração para ser executada todos os dias às 17:35
-  cron.schedule('28 13 * * *', async () => {
+  cron.schedule('31 10 * * *', async () => {
     console.log('Executando a tarefa agendada para a migração às 17:35');
     await iniciarMigracao();
   });
