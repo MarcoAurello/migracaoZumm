@@ -40,51 +40,6 @@ async function obterToken() {
 
 
 
-// async function criarEquipe1(token, nome, codigo, user) {
-
-
-//   // Defina o corpo da solicitação
-//   const equipe = {
-//     "template@odata.bind": "https://graph.microsoft.com/v1.0/teamsTemplates('educationClass')",
-//     "displayName": nome + codigo,
-//     "description": codigo,
-//     "members": [
-//       {
-//         "@odata.type": "#microsoft.graph.aadUserConversationMember",
-//         "roles": [
-//           "owner"
-//         ],
-//         "user@odata.bind": `https://graph.microsoft.com/v1.0/users/${user}`
-//       }
-//     ]
-//   };
-
-//   // Defina os cabeçalhos da solicitação
-//   const headers = {
-//     'Authorization': `Bearer ${token}`,
-//     'Content-Type': 'application/json'
-//   };
-
-//   try {
-//     // Envie a solicitação POST para criar a equipe
-//     const response = await axios.post('https://graph.microsoft.com/v1.0/teams', equipe, { headers });
-//     console.log('Equipe criada:', response.data);
-
-//     const contentLocation = response.headers['content-location'];
-//     const match = contentLocation.match(/\/teams\('([^']+)'\)/);
-//     const teamId = match ? match[1] : null;
-//     console.log('Team ID:', teamId);
-
-
-//     return { data: response.data, teamId };
-
-//     return response.data;
-//   } catch (error) {
-//     console.error('Erro ao criar equipe:', error.response ? error.response.data : error.message);
-//     throw error;
-//   }
-// }
-
 
 async function criarEquipe1(token, nome, codigo, user) {
   // Defina o corpo da solicitação
@@ -600,8 +555,8 @@ class TurmaController implements IController {
               nome,
               cpf,
               email: item['AlunoEmail'],
-              // emailCadastro: item['AlunoEmail'],
-              emailCadastro: 'marconunes@pe.senac.br',
+              emailCadastro: item['AlunoEmail'],
+              // emailCadastro: 'marconunes@pe.senac.br',
               emailCriado: true,  // Se o e-mail tiver o domínio, marca como criado
               emailCadastroESenac: true,
               ativo: true,
@@ -614,8 +569,8 @@ class TurmaController implements IController {
               nome,
               cpf,
               email,
-              // emailCadastro: item['AlunoEmail'] || '', 
-              emailCadastro: 'marconunes@pe.senac.br',
+              emailCadastro: item['AlunoEmail'] || '', 
+              // emailCadastro: 'marconunes@pe.senac.br',
               emailCriado: false,  // Se não tiver o domínio, marca como não criado
               emailCadastroESenac: false,
               ativo: true,

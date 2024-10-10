@@ -202,7 +202,7 @@ const Configuracao = (props) => {
                         {/* Conteúdo da primeira div */}
                         <b>
 
-                            Lista de gestores de Turma
+                            Lista Gestores de turma TEAMS
                         </b>
 
 
@@ -260,7 +260,7 @@ const Configuracao = (props) => {
                                 fontWeight: 'bold',
                             }}
                         >
-                            Ver turmas
+                            Ver turmas desse gestor
                         </button>
                     </div>
                 </div>
@@ -284,7 +284,7 @@ const Configuracao = (props) => {
                         {/* Conteúdo da segunda div */}
                         <b>
 
-                            Alunos vinculados a essa sala TEAMS
+                            Alunos
                         </b>
                         {/* {responsavel
               .filter(item => item.Aluno.alunoVinculado === true) // Filtra apenas os alunos com emailCriado = true

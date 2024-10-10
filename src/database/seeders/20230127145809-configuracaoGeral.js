@@ -17,8 +17,8 @@ module.exports = {
     await queryInterface.bulkInsert('configuracaoGeral', [{
       id: uuid(),
       autenticacaoAd: true,
-      email: 'semresposta@pe.senac.br',
-      password: 'Gti22122022',
+      email: 'naoresponda@pe.senac.br',
+      password: 'Gti23032023',
       host: 'smtp.office365.com',
       porta: '587',
       ssl: true,
@@ -28,7 +28,7 @@ module.exports = {
 <head>
 <meta name="viewport" content="width=device-width" />
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>SENAC - PE - Contrato Instrutor</title>
+<title>SENAC - PE</title>
 <style>
   /* -------------------------------------            GLOBAL RESETS        ------------------------------------- */
   img {

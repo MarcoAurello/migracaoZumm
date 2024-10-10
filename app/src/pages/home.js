@@ -490,7 +490,7 @@ const Home = (props) => {
 
           {emailAdm && idEquipe
             ?
-            <Button onClick={() => handleCriarEquipe()}>Criar equipe </Button>
+            <Button onClick={() => handleCriarEquipe()}>Criar equipe TEAMS </Button>
             : ''}
             <p></p>
 

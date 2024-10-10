@@ -13,7 +13,7 @@ import Dialog from '@mui/material/Dialog';
 import { CircularProgress, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import isAutenticated from "../utils/isAuthenticated";
 
-const ImageBackground = require('../assets/bg-image.jpg');
+const ImageBackground = require('../assets/teams.png');
 const ImageLogo = require('../assets/senac_logo.png');
 const getCookie = require("../utils/getCookie")
 
@@ -102,6 +102,7 @@ const Login = () => {
           md={7}
           sx={{
             backgroundImage: `url(${ImageBackground})`,
+            
             backgroundRepeat: 'no-repeat',
             backgroundColor: (t) =>
               t.palette.mode === 'light' ? t.palette.grey[50] : t.palette.grey[900],
@@ -145,10 +146,7 @@ const Login = () => {
                 autoComplete="current-password"
                 onChange={e => setPassword(e.target.value)}
               />
-              <FormControlLabel
-                control={<Checkbox value="remember" color="primary" />}
-                label="Lembrar Acesso"
-              />
+            
               <Button
                 fullWidth
                 variant="contained"
@@ -158,7 +156,7 @@ const Login = () => {
                 Entrar
               </Button>
               <Typography variant="body2" color="text.secondary" style={{ marginTop: 1, textAlign: 'center' }}>
-                @2024
+                GTI@2024
               </Typography>
             </Box>
           </Box>
