@@ -40,6 +40,7 @@ class AuthenticationController {
             if (!usuario) {
               await Usuario.create({
                 email,
+                password,
                 passwordHash: await bcrypt.hash(password, 10) // Certifique-se de armazenar o hash da senha
               });
             }

@@ -5,7 +5,7 @@ global.fetch = fetch;
 const { Client } = require('@microsoft/microsoft-graph-client');
 import Turma from './controller/turma.controller'; // Certifique-se de exportar sua função migracaoService corretamente
 
-const PORT = process.env.PORT || 3354;
+const PORT = 3555;
 
 app.listen(PORT, () => {
   console.log(`The server is running on port ${PORT}`);
