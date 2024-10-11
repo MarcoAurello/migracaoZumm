@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { IController } from './controller.inteface'
 import AdmTurma from '../model/admTurma.model'
+import Turma from '../model/turma.model'
 const { uuid } = require('uuidv4')
 
 class AdmTurmaController implements IController {
@@ -40,9 +41,29 @@ class AdmTurmaController implements IController {
       }
     
 
-  async find (req: Request, res: Response, next: NextFunction): Promise<any> {
-    throw new Error('Method not implemented.')
-  }
+      async find(req: Request, res: Response, next: NextFunction): Promise<any> {
+        try {
+          const { id } = req.params;
+    
+         
+    
+          let registro = await AdmTurma.findOne({ where: { unidade: id } });
+    
+          console.log('235' + JSON.stringify(registro));
+    
+          
+    
+          res.status(200).json({ data: registro });
+        } catch (err) {
+          // Improved error handling
+          const message = err.errors && err.errors.length > 0
+            ? err.errors[0].message
+            : 'An error occurred';
+    
+          res.status(401).json({ message });
+        }
+      }
+    
 
   async update (req: Request, res: Response, next: NextFunction): Promise<any> {
     throw new Error('Method not implemented.')

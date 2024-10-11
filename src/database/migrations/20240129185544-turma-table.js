@@ -39,6 +39,11 @@ module.exports = {
         allowNull: true,
 
       },
+      unidade: {
+        type: Sequelize.TEXT,
+        allowNull: true,
+
+      },
       dataInicio: {
         type: Sequelize.DATE,
         allowNull: false

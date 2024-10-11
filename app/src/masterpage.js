@@ -102,53 +102,58 @@ const Masterpage = (props) => {
       // setPrimeiroLogin(_.data.data.primeiroLogin)
       // setOpenDialogPrimeiroAcesso(_.data.data.primeiroLogin)
     })
+
+
+    // if(logged){
+    //   alert(JSON.stringify(logged))
+    // }
   }, []);
 
 
   useEffect(() => {
     function carregarPerfil() {
-      setOpenLoadingDialog(true)
-      const token = getCookie('_token_teams_manager')
-      const params = {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      }
-      fetch(`${process.env.REACT_APP_DOMAIN_API}/api/perfil/`, params)
-        .then(response => {
-          const { status } = response
-          response.json().then(data => {
-            if(status === 401) {  
-            } else if(status === 200) {
-              setPerfil(data.data)
-              carregarUnidade()
-            }
-          }).catch(err => setOpenLoadingDialog(false))
-        })
-    }
-
-
-    function carregarUnidade() {
-      // setOpenLoadingDialog(true)
+     
       const token = getCookie('_token_task_manager')
       const params = {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       }
-      fetch(`${process.env.REACT_APP_DOMAIN_API}/api/unidade/`, params)
+      fetch(`${process.env.REACT_APP_DOMAIN_API}/api/area/`, params)
         .then(response => {
           const { status } = response
           response.json().then(data => {
-            setOpenLoadingDialog(false)
             if(status === 401) {  
             } else if(status === 200) {
-              setUnidade(data.data)
-              setOpenLoadingDialog(false)
+              setPerfil(data.data)
+              // carregarUnidade()
             }
-          }).catch(err => setOpenLoadingDialog(true))
+          }).catch(err => setOpenLoadingDialog(false))
         })
     }
+
+
+    // function carregarUnidade() {
+    //   // setOpenLoadingDialog(true)
+    //   const token = getCookie('_token_task_manager')
+    //   const params = {
+    //     headers: {
+    //       'Authorization': `Bearer ${token}`
+    //     }
+    //   }
+    //   fetch(`${process.env.REACT_APP_DOMAIN_API}/api/unidade/`, params)
+    //     .then(response => {
+    //       const { status } = response
+    //       response.json().then(data => {
+    //         setOpenLoadingDialog(false)
+    //         if(status === 401) {  
+    //         } else if(status === 200) {
+    //           setUnidade(data.data)
+    //           setOpenLoadingDialog(false)
+    //         }
+    //       }).catch(err => setOpenLoadingDialog(true))
+    //     })
+    // }
 
     if(primeiroLogin) {
       carregarPerfil()
@@ -555,7 +560,7 @@ const Masterpage = (props) => {
           <DialogTitle>Primeiro Acesso</DialogTitle>
           <DialogContent>
             <DialogContentText>
-              Para a correta utilização do sistema é necessário o preenchimento dos campos abaixo. Estas informações passaram pela aprovação do gestor imediato.
+              
             </DialogContentText>
             <TextField
               margin="dense"
@@ -567,28 +572,10 @@ const Masterpage = (props) => {
               value={nome}
               onChange={e => setNome(e.target.value)}
             />
-            <TextField
-              margin="dense"
-              label="Chapa"
-              type="text"
-              fullWidth
-              variant="standard"
-              size="small"
-              value={chapa}
-              onChange={e => setChapa(e.target.value)}
-            />
-            <TextField
-              margin="dense"
-              label="Telefone/Ramal"
-              type="text"
-              fullWidth
-              variant="standard"
-              size="small"
-              value={telefone}
-              onChange={e => setTelefone(e.target.value)}
-            />
+           
+          
             <FormControl fullWidth size="small" variant="standard" style={{marginTop: 8}}>
-              <InputLabel id="label-small-perfil">Perfil</InputLabel>
+              <InputLabel id="label-small-perfil">Unidade</InputLabel>
               <Select
                 fullWidth
                 labelId="label-small-perfil"
@@ -600,32 +587,8 @@ const Masterpage = (props) => {
                 {perfil.map((item, index) => <MenuItem key={index} value={item.id} onClick={() => setFkPerfil(item.id)}>{item.nome}</MenuItem>)}
               </Select>
             </FormControl>
-            <FormControl fullWidth size="small" variant="standard" style={{marginTop: 16}}>
-              <InputLabel id="label-small-unidade">Unidade</InputLabel>
-              <Select
-                fullWidth
-                labelId="label-small-unidade"
-                label="Area"
-                value={fkUnidade}>
-                <MenuItem value={null} onClick={() => setFkUnidade(null)}>
-                  <em>Nenhum</em>
-                </MenuItem>
-                {unidade.map((item, index) => <MenuItem key={index} value={item.id} onClick={() => setFkUnidade(item.id)}>{item.nome}</MenuItem>)}
-              </Select>
-            </FormControl>
-            <FormControl fullWidth size="small" variant="standard" style={{marginTop: 16}}>
-              <InputLabel id="label-small-unidade">Área</InputLabel>
-              <Select
-                fullWidth
-                labelId="label-small-unidade"
-                label="Area"
-                value={fkArea}>
-                <MenuItem value={null} onClick={() => setFkArea(null)}>
-                  <em>Nenhum</em>
-                </MenuItem>
-                {area.map((item, index) => <MenuItem key={index} value={item.id} onClick={() => setFkArea(item.id)}>{item.nome}</MenuItem>)}
-              </Select>
-            </FormControl>
+         
+        
           </DialogContent>
           <DialogActions>
             <Button onClick={salvarDadosPrimeiroAcesso}>Salvar</Button>

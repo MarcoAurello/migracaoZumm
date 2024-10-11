@@ -32,6 +32,10 @@ Turma.init({
     type: DataTypes.TEXT,
     allowNull: true
   },
+  unidade: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
   dataInicio: {
     type: DataTypes.DATE,
     allowNull: false
@@ -69,6 +73,7 @@ Turma.init({
 
 Turma.belongsTo(Tutor, { foreignKey: 'fkTutor' })
 Tutor.hasMany(Turma, { foreignKey: 'fkTutor' })
+
 
 
 export default Turma

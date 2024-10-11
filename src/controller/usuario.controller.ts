@@ -152,44 +152,30 @@ class UsuarioController implements IController {
     try {
       const {
         nome,
-        telefone,
-        chapa,
+    
         fkPerfil,
-        fkUnidade,
-        fkArea
+
       } = req.body
 
       if (!nome) {
         return res.status(401).json({ message: 'O campo nome deve ser preenchido corretamente.' })
       }
 
-      if (!chapa) {
-        return res.status(401).json({ message: 'O campo chapa deve ser preenchido corretamente.' })
-      }
-
-      if (!telefone) {
-        return res.status(401).json({ message: 'O campo telefone deve ser preenchido corretamente.' })
-      }
+    
 
       if (!fkPerfil) {
         return res.status(401).json({ message: 'O campo perfil deve ser preenchido corretamente.' })
       }
 
-      if (!fkUnidade) {
-        return res.status(401).json({ message: 'O campo unidade deve ser preenchido corretamente.' })
-      }
-
-      if (!fkArea) {
-        return res.status(401).json({ message: 'O campo área deve ser preenchido corretamente.' })
-      }
+   
 
       await Usuario.update({
         nome,
-        telefone,
-        chapa,
+      
+
         fkPerfil,
-        fkUnidade,
-        fkArea,
+        
+    
         primeiroLogin: false
       }, {
         where: {

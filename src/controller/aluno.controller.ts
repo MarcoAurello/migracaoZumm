@@ -252,69 +252,134 @@ class AlunoController implements IController {
 
 
 
+  // async vincularAllEmailInstitucional(req: any, res: Response, next: NextFunction): Promise<any> {
+  //   try {
+  //     const { idTurma, VincularTodosEmails } = req.body;
+
+  //     // Verifica se idTurma e VincularTodosEmails são válidos
+  //     if (!idTurma || !Array.isArray(VincularTodosEmails) || VincularTodosEmails.length === 0) {
+  //       return res.status(400).json({ message: "ID da Turma ou lista de emails inválida." });
+  //     }
+
+  //     const turmaAtual = await Turma.findOne({
+  //       where: { id: idTurma }
+  //     });
+
+  //     if (!turmaAtual) {
+  //       return res.status(404).json({ message: "Turma não encontrada." });
+  //     }
+
+  //     const idTeamsTurma = turmaAtual?.idTurmaTeams;
+
+  //     if (!idTeamsTurma) {
+  //       return res.status(404).json({ message: "ID da turma no Teams não encontrado." });
+  //     }
+
+  //     const resultados = [];
+
+  //     // Itera sobre a lista de emails para vincular os alunos à turma
+  //     for (const email of VincularTodosEmails) {
+  //       if (email) {
+  //         const userId = await obterUsuarios(email);
+
+  //         if (!userId) {
+  //           console.error(`Usuário com email ${email} não encontrado no sistema.`);
+  //           resultados.push({ email, status: "Usuário não encontrado" });
+  //           continue;
+  //         }
+
+  //         try {
+  //           // Adiciona o aluno à turma no Teams
+  //           await adicionarMembroEquipe(idTeamsTurma, userId);
+
+  //           // Atualiza o status do aluno como vinculado
+  //           await Aluno.update(
+  //             { alunoVinculado: true },
+  //             { where: { email } }
+  //           );
+
+  //           resultados.push({ email, status: "Vinculado com sucesso" });
+  //         } catch (error) {
+  //           console.error(`Erro ao vincular o email ${email}:`, error);
+  //           resultados.push({ email, status: "Erro ao vincular aluno" });
+  //         }
+  //       }
+  //     }
+
+  //     // Retorna a lista de resultados para o frontend
+  //     console.log(resultados); // Feedback no console do servidor
+  //     res.status(200).json({ message: "Processo de vinculação concluído", resultados });
+
+  //   } catch (err) {
+  //     console.log(err);
+  //     res.status(500).json({ message: "Erro no servidor", error: err.message });
+  //   }
+  // }
+
+
   async vincularAllEmailInstitucional(req: any, res: Response, next: NextFunction): Promise<any> {
     try {
       const { idTurma, VincularTodosEmails } = req.body;
-
-      // Verifica se idTurma e VincularTodosEmails são válidos
+  
       if (!idTurma || !Array.isArray(VincularTodosEmails) || VincularTodosEmails.length === 0) {
         return res.status(400).json({ message: "ID da Turma ou lista de emails inválida." });
       }
-
-      const turmaAtual = await Turma.findOne({
-        where: { id: idTurma }
-      });
-
+  
+      const turmaAtual = await Turma.findOne({ where: { id: idTurma } });
+  
       if (!turmaAtual) {
         return res.status(404).json({ message: "Turma não encontrada." });
       }
-
+  
       const idTeamsTurma = turmaAtual?.idTurmaTeams;
-
+  
       if (!idTeamsTurma) {
         return res.status(404).json({ message: "ID da turma no Teams não encontrado." });
       }
-
+  
       const resultados = [];
-
-      // Itera sobre a lista de emails para vincular os alunos à turma
+      let alunosProcessados = 0;
+      const totalAlunos = VincularTodosEmails.length;
+  
+      // Configura para manter a conexão aberta e enviar dados em "streaming"
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Transfer-Encoding', 'chunked');
+  
       for (const email of VincularTodosEmails) {
         if (email) {
           const userId = await obterUsuarios(email);
-
+  
           if (!userId) {
-            console.error(`Usuário com email ${email} não encontrado no sistema.`);
             resultados.push({ email, status: "Usuário não encontrado" });
             continue;
           }
-
+  
           try {
-            // Adiciona o aluno à turma no Teams
             await adicionarMembroEquipe(idTeamsTurma, userId);
-
-            // Atualiza o status do aluno como vinculado
-            await Aluno.update(
-              { alunoVinculado: true },
-              { where: { email } }
-            );
-
+            await Aluno.update({ alunoVinculado: true }, { where: { email } });
             resultados.push({ email, status: "Vinculado com sucesso" });
           } catch (error) {
-            console.error(`Erro ao vincular o email ${email}:`, error);
             resultados.push({ email, status: "Erro ao vincular aluno" });
           }
+  
+          // Atualizar progresso
+          alunosProcessados++;
+          const progresso = Math.floor((alunosProcessados / totalAlunos) * 100);
+  
+          // Enviar progresso parcial ao cliente
+          res.write(`${JSON.stringify({ status: 'progress', progress: progresso })}\n`);
         }
       }
-
-      // Retorna a lista de resultados para o frontend
-      console.log(resultados); // Feedback no console do servidor
-      res.status(200).json({ message: "Processo de vinculação concluído", resultados });
-
+  
+      // Finalizar resposta
+      res.write(`${JSON.stringify({ status: 'done', message: 'Processo concluído', resultados })}\n`);
+      res.end();
+  
     } catch (err) {
-      console.log(err);
-      res.status(500).json({ message: "Erro no servidor", error: err.message });
+      res.status(500).json({ message: 'Erro no servidor', error: err.message });
     }
   }
+  
 
 
 
@@ -406,51 +471,12 @@ class AlunoController implements IController {
     <a href="https://go.microsoft.com/fwlink/?linkid=2185828">entrar</a><p>
           `;
 
-          emailUtils.enviar(aluno.emailCadastro, txEmail);
+          // emailUtils.enviar(aluno.emailCadastro, txEmail);
         }
 
       }
 
-      // else if (CriarTodosEmails.length > 0 &&  !alunoId) {
-      //   for (const alunoId of CriarTodosEmails) {
-      //     if (alunoId) {
-      //       const aluno = await Aluno.findOne({
-      //         where: { id: alunoId }
-      //       });
-
-      //       if (!aluno) {
-      //         console.error(`Aluno com ID ${alunoId} não encontrado.`);
-      //         continue;
-      //       }
-
-      //       const email = aluno.email;
-      //       const mailNickname = email.split('@')[0];
-      //       const senhaGerada = gerarSenha();
-
-      //       const usuarioCriado = await criarEmailInstitucional({
-      //         displayName: aluno.nome,
-      //         mailNickname,
-      //         userPrincipalName: aluno.email,
-      //         password: senhaGerada
-      //       });
-
-      //       if (usuarioCriado) {
-      //         await Aluno.update(
-      //           { emailCriado: true },
-      //           { where: { id: aluno.id } }
-      //         );
-
-      //         const txEmail = `
-      //           <b>Email Senac Criado.</b><br>
-      //           Email: <strong>${aluno.email}</strong><br>
-      //           Senha: <strong>${senhaGerada}</strong><br>
-      //         `;
-
-      //         emailUtils.enviar(aluno.emailCadastro, txEmail);
-      //       }
-      //     }
-      //   }
-      // }
+     
 
       res.status(200).json({ message: "Criado com sucesso" });
     } catch (err) {
@@ -459,73 +485,156 @@ class AlunoController implements IController {
     }
   }
 
+ 
   async createAllEmailInstitucional(req: any, res: Response, next: NextFunction): Promise<any> {
     try {
       const { CriarTodosEmails } = req.body;
-
+  
       if (!CriarTodosEmails || CriarTodosEmails.length === 0) {
         return res.status(400).json({ message: "Nenhum ID fornecido." });
       }
-
+  
+      const totalAlunos = CriarTodosEmails.length;
+      let alunosProcessados = 0;
       const resultados = [];
-
+  
+      // Configura para manter a conexão aberta e enviar dados em "streaming"
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Transfer-Encoding', 'chunked');
+  
       for (const alunoId of CriarTodosEmails) {
         if (alunoId) {
           try {
             const aluno = await Aluno.findOne({ where: { id: alunoId } });
-
+  
             if (!aluno) {
-              console.error(`Aluno com ID ${alunoId} não encontrado.`);
               resultados.push({ alunoId, status: 'Aluno não encontrado' });
-              continue; // Skip to the next alunoId
+              continue;
             }
-
+  
             const email = aluno.email;
             const mailNickname = email.split('@')[0];
             const senhaGerada = gerarSenha();
-
+  
             const usuarioCriado = await criarEmailInstitucional({
               displayName: aluno.nome,
               mailNickname,
               userPrincipalName: aluno.email,
               password: senhaGerada
             });
-
+  
             if (usuarioCriado) {
-              await Aluno.update({ emailCriado: true }, { where: { id: aluno.id } });
+
 
               const txEmail = `
-                            <b>Email Senac Criado.</b><br>
-                            Email: <strong>${aluno.email}</strong><br>
-                            Senha: <strong>${senhaGerada}</strong><br>
-                        `;
-              emailUtils.enviar(aluno.emailCadastro, txEmail);
+              <b>Ola ${aluno.nome}.</b><br>
+              <b>Seu email de aluno Senac PE foi criado com sucesso</b><br>
+              Email: <strong>${aluno.email}</strong><br>
+              Senha: <strong>${senhaGerada}</strong><br>
+              <br/>
+      <a href="https://go.microsoft.com/fwlink/?linkid=2185828">entrar</a><p>
+            `;
+  
+            // emailUtils.enviar(aluno.emailCadastro, txEmail);
+            emailUtils.enviar('marconunes@pe.senac.br', txEmail);
 
+              await Aluno.update({ emailCriado: true }, { where: { id: aluno.id } });
               resultados.push({ alunoId, status: 'Email criado com sucesso' });
             } else {
               resultados.push({ alunoId, status: 'Erro na criação do email' });
             }
           } catch (error) {
-            console.error(`Erro ao processar aluno ID ${alunoId}:`, error);
             resultados.push({ alunoId, status: 'Erro no processamento' });
           }
+  
+          // Atualizar progresso
+          alunosProcessados++;
+          const progresso = Math.floor((alunosProcessados / totalAlunos) * 100);
+  
+          // Enviar progresso parcial ao cliente
+          res.write(`${JSON.stringify({ status: 'progress', progress: progresso })}\n`);
         }
       }
-
-      console.log(resultados); // Log no console do servidor
-      res.status(200).json({ message: "Processo concluído", resultados });
-
+  
+      // Finalizar resposta
+      res.write(`${JSON.stringify({ status: 'done', message: 'Processo concluído', resultados })}\n`);
+      res.end();
+  
     } catch (err) {
-      console.error('Erro no servidor:', err);
       res.status(500).json({ message: 'Erro no servidor', error: err.message });
     }
   }
   
 
-
-
   async find(req: Request, res: Response, next: NextFunction): Promise<any> {
-    throw new Error("Method not implemented.");
+    try {
+      //cpf para buscar o aluno no banco dos concluintes 
+      const { id } = req.params;
+      console.log('xxt' + id)
+      let cpf = id.replace(/\D/g, "");
+
+      // const config = await Config.findOne({
+      //   where: { email: 'semresposta@pe.senac.br' },
+      // });
+
+
+      let registro = []
+
+      // if (config?.baseProjeto) {
+
+        //         registro = await Usuario.sequelize?.query(` select * from alunosMigrados
+        // where AlunoCPF =  ?
+        //       `,
+        //             {
+        //               replacements: [cpf]
+        //             }
+        //           )
+
+        registro = await Aluno.sequelize?.query(`SELECT Top 1
+         A.AlunoId,
+                  A.AlunoNome,
+                  A.AlunoCPF,
+                  A.AlunoEmail,
+                  T.TurmaId,
+                  T.TurmaNome,
+                  T.TurmaCodigoFormatado,
+                  T.TurmaSituacao,
+                  T.TurmaDataDeInicio,
+                  T.TurmaDataDeTermino,
+                  T.TurmaAdiada,
+                  M.TurmaCodigoFormatado,
+                  U.UnidadeOperativaSigla Unidade
+              FROM
+                  [DATASET_SIG].dbo.Analise_Turma T
+              INNER JOIN
+                  [DATASET_SIG].dbo.Analise_Matricula M ON M.TurmaId = T.TurmaId
+              INNER JOIN
+                  [DATASET_SIG].dbo.Analise_Aluno A ON M.AlunoId = A.AlunoId
+              INNER JOIN
+                  [DATASET_SIG].dbo.Analise_RegionalUOP U ON T.UnidadeOperativaId = U.UnidadeOperativaId
+              WHERE
+                  (T.TurmaSituacao = 'Liberada para Matrícula' OR T.TurmaSituacao = 'Em Processo')
+    and A.AlunoCPF = ?
+    `,
+          {
+            replacements: [cpf]
+          }
+        )
+
+     
+
+      // }
+
+
+
+
+      console.log("found" + registro)
+
+      res.status(200).json({ data: registro });
+    } catch (err) {
+      console.log(err);
+      res.status(401).json({ message: err.errors[0].message });
+    }
   }
 
   async update(req: Request, res: Response, next: NextFunction): Promise<any> {

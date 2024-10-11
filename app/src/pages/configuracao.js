@@ -42,12 +42,17 @@ const Configuracao = (props) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
 
+    
+    const [alunoChecado, setAlunoChecado] = useState([])
+
+
     const [CriarTodosEmails, setCriarTodosEmails] = useState([]);
     const [open, setOpen] = useState(false);
     const [responsavel, setResponsavel] = useState([])
     const [model, setModel] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [searchTerm1, setSearchTerm1] = useState('');
+    const [cpf, setCpf] = useState('')
 
     // Filter the responsavel array based on the search term
     const filteredResponsavel = responsavel.filter(item =>
@@ -96,6 +101,54 @@ const Configuracao = (props) => {
             })
     }
 
+    const handleCpfChange = (e) => {
+        // const numeroFormatado = Mascara.maskCPF(e.target.value);
+        setCpf(e.target.value);
+        // alert(cpf)
+      };
+
+
+      const check = () => {
+
+        setOpenLoadingDialog(true)
+        const token = getCookie("_token_task_manager")
+        const params = {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        }
+        fetch(`${process.env.REACT_APP_DOMAIN_API}/api/aluno/${cpf}`, params)
+          .then(response => {
+            const { status } = response
+            response.json().then(data => {
+            //   setOpenDialog(false)
+              if (status === 401) {
+    
+    
+                setMessage(data.message)
+                alert(data.message)
+                setOpenLoadingDialog(false)
+              } else if (status === 200) {
+                setAlunoChecado(data.data)
+    
+    
+    
+    
+                // setNome(data.data.AlunoNome)
+                // salvardadosMigrados()
+    
+    
+    
+    
+                setOpenLoadingDialog(false)
+    
+              }
+            })
+          })
+      }
+    
+    
+
 
 
     function carregarResponsavel() {
@@ -133,9 +186,14 @@ const Configuracao = (props) => {
         carregarResponsavel()
 
 
+        // if(alunoChecado){
+        //     alert(JSON.stringify(alunoChecado))
+        // }
 
 
-    }, []);
+
+
+    }, [alunoChecado]);
 
     return (
 
@@ -285,7 +343,43 @@ const Configuracao = (props) => {
                         <b>
 
                             Alunos
-                        </b>
+                        </b><p>
+                            
+                            </p>
+
+                            <div>
+                      <div style={{ color: 'red' }}>Informe seu CPF</div>
+                      <TextField
+                        margin="normal"
+                        size="small"
+                        fullWidth
+                        id="Cpf"
+                        label="Seu CPF"
+                        name="Cpf"
+                        autoComplete="cpf"
+                        value={cpf}
+                        onChange={handleCpfChange}
+                        // className={camposVazios.includes('cpf') && !cpf ? 'campo-vazio' : ''}
+
+                      />
+                      <Button
+                        variant="contained"
+                        sx={{ mt: 3, mb: 2 }} style={{ marginRight: '5px', textTransform: 'none' }}
+                        onClick={() => [check()]}>
+                        Buscar
+                      </Button>
+
+
+                      <Button
+                        variant="contained"
+
+                        sx={{ mt: 3, mb: 2 }}
+                        style={{ marginRight: '5px', textTransform: 'none' }}
+                        onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/login`}>
+                        Sair
+                      </Button>
+
+                    </div>
                         {/* {responsavel
               .filter(item => item.Aluno.alunoVinculado === true) // Filtra apenas os alunos com emailCriado = true
               .map((item, index) => (

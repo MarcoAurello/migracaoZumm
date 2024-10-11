@@ -6,22 +6,14 @@ import Unidade from '../model/unidade.model'
 class AreaController implements IController {
   async all (req: Request, res: Response, next: NextFunction): Promise<any> {
     try {
-      const { fkUnidade } = req.query
+      const registros = await Area.findAll({ order: [['nome', 'asc']] })
+      console.log('pppss')
 
-      if (fkUnidade) {
-        const registros = await Area.findAll({ where: { fkUnidade }, include: [Unidade], order: [['nome', 'asc']] })
-
-        return res.status(200).json({ data: registros })
-      } else {
-        const registros = await Area.findAll({ include: [Unidade], order: [['nome', 'asc']] })
-
-        return res.status(200).json({ data: registros })
-      }
+      res.status(200).json({ data: registros })
     } catch (err) {
       res.status(401).json({ message: err.errors[0].message })
     }
   }
-
   async create (req: Request, res: Response, next: NextFunction): Promise<any> {
     try {
       const {

@@ -2,6 +2,7 @@ import { CircularProgress, FormControl, InputLabel, MenuItem, Select, SpeedDial 
 
 import EditIcon from '@mui/icons-material/Edit';
 import TaskAluno from '../components/task-aluno'
+import moment from 'moment';
 
 
 import React, { useEffect, useState } from 'react';
@@ -29,6 +30,8 @@ const Alunos = (props) => {
   const [turmaSelecinada, setTurmaSelecinada] = useState([]);
   const [progress, setProgress] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [fkPerfil, setFkPerfil] = useState(null)  
+  const [perfil, setPerfil] = useState([])
 
 
 
@@ -48,6 +51,9 @@ const Alunos = (props) => {
 
   const [VincularTodosEmails, setVincularTodosEmails] = useState([]);
 
+  
+  
+
   const handleCriarTodosChange = (e) => {
     if (e.target.checked) {
       // Se marcado, armazena o ID de todos os alunos sem email
@@ -65,7 +71,7 @@ const Alunos = (props) => {
     if (e.target.checked) {
       // Se marcado, armazena o ID de todos os alunos sem email
       const todosIds = alunos
-        .filter(item => (item.Aluno.alunoVinculado === false && 
+        .filter(item => (item.Aluno.alunoVinculado === false &&
           item.Aluno.emailCriado === true
         ))
         .map(item => item.Aluno.email);
@@ -196,11 +202,8 @@ const Alunos = (props) => {
 
   }
 
-
-  
-
   const onVinculateEmailAll = (VincularTodosEmails) => {
-    setOpenLoadingDialog(true);
+    setIsLoading(true);
     const token = getCookie("_token_task_manager");
     const params = {
       method: 'POST',
@@ -208,51 +211,118 @@ const Alunos = (props) => {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         VincularTodosEmails,
         idTurma: id // Certifique-se de que 'id' é o ID da turma
       })
     };
-  
+
     fetch(`${process.env.REACT_APP_DOMAIN_API}/api/aluno/vincularAllEmailInstitucional`, params)
-      .then(response => {
-        const { status } = response;
-        response.json().then(data => {
-          setOpenLoadingDialog(false);
-  
-          if (status === 401) {
-            alert(data.message);
-            console.error('Erro de autenticação:', data.message);
-          } else if (status === 200) {
-            console.log('Resultado do backend:', data.resultados); // Exibe o resultado completo no console
-            alert(`Processo concluído: ${data.message}`);
-            
-            // Exibir os detalhes de cada aluno vinculado
-            let mensagemResultado = "";
-            data.resultados.forEach(resultado => {
-              console.log(`Email: ${resultado.email}, Status: ${resultado.status}`);
-              mensagemResultado += `Email: ${resultado.email}, Status: ${resultado.status}\n`;
-            });
-  
-            alert(mensagemResultado); // Exibe todos os resultados na tela
-            window.location.reload(); // Recarrega a página após a operação
+      .then(async response => {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let done = false;
+        let receivedData = '';
+
+        while (!done) {
+          const { value, done: readerDone } = await reader.read();
+          done = readerDone;
+
+          // Decodifica os dados do stream
+          receivedData += decoder.decode(value, { stream: true });
+
+          // Divide os dados em pedaços JSON completos
+          const chunks = receivedData.split('\n');
+
+          for (let chunk of chunks) {
+            if (chunk) {
+              try {
+                const data = JSON.parse(chunk);
+
+                if (data.status === 'progress') {
+                  console.log(`Progresso: ${data.progress}%`);
+                  setProgress(data.progress); // Atualiza o progresso no estado
+                } else if (data.status === 'done') {
+                  setIsLoading(false);
+                  console.log(`Processo concluído: ${data.message}`);
+                  alert(`Processo concluído: ${data.message}`);
+                  window.location.reload(); // Recarrega a página ao finalizar
+                }
+              } catch (err) {
+                console.error('Erro ao processar chunk JSON:', err);
+              }
+            }
           }
-        }).catch(err => {
-          setOpenLoadingDialog(false);
-          console.error('Erro no parsing da resposta:', err);
-          alert('Erro ao processar resposta do servidor');
-        });
+
+          // Limpa os chunks processados
+          receivedData = chunks[chunks.length - 1];
+        }
       })
       .catch(err => {
-        setOpenLoadingDialog(false);
+        setIsLoading(false);
         console.error('Erro na requisição:', err);
         alert('Erro ao conectar com o servidor');
       });
   };
-  
+
+
+
+
+
+  // const onVinculateEmailAll = (VincularTodosEmails) => {
+  //   setOpenLoadingDialog(true);
+  //   const token = getCookie("_token_task_manager");
+  //   const params = {
+  //     method: 'POST',
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //       'Authorization': `Bearer ${token}`
+  //     },
+  //     body: JSON.stringify({
+  //       VincularTodosEmails,
+  //       idTurma: id // Certifique-se de que 'id' é o ID da turma
+  //     })
+  //   };
+
+  //   fetch(`${process.env.REACT_APP_DOMAIN_API}/api/aluno/vincularAllEmailInstitucional`, params)
+  //     .then(response => {
+  //       const { status } = response;
+  //       response.json().then(data => {
+  //         setOpenLoadingDialog(false);
+
+  //         if (status === 401) {
+  //           alert(data.message);
+  //           console.error('Erro de autenticação:', data.message);
+  //         } else if (status === 200) {
+  //           console.log('Resultado do backend:', data.resultados); // Exibe o resultado completo no console
+  //           alert(`Processo concluído: ${data.message}`);
+
+  //           // Exibir os detalhes de cada aluno vinculado
+  //           let mensagemResultado = "";
+  //           data.resultados.forEach(resultado => {
+  //             console.log(`Email: ${resultado.email}, Status: ${resultado.status}`);
+  //             mensagemResultado += `Email: ${resultado.email}, Status: ${resultado.status}\n`;
+  //           });
+
+  //           alert(mensagemResultado); // Exibe todos os resultados na tela
+  //           window.location.reload(); // Recarrega a página após a operação
+  //         }
+  //       }).catch(err => {
+  //         setOpenLoadingDialog(false);
+  //         console.error('Erro no parsing da resposta:', err);
+  //         alert('Erro ao processar resposta do servidor');
+  //       });
+  //     })
+  //     .catch(err => {
+  //       setOpenLoadingDialog(false);
+  //       console.error('Erro na requisição:', err);
+  //       alert('Erro ao conectar com o servidor');
+  //     });
+  // };
+
 
   const onCreateEmail = (item) => {
-     
+
 
     setOpenLoadingDialog(true)
     const token = getCookie("_token_task_manager")
@@ -264,9 +334,10 @@ const Alunos = (props) => {
       },
       body: JSON.stringify({
         alunoId: item,
-        idTurma : id
+        idTurma: id
       })
     }
+
 
     fetch(`${process.env.REACT_APP_DOMAIN_API}/api/aluno/createEmailInstitucional`, params)
       .then(response => {
@@ -290,13 +361,56 @@ const Alunos = (props) => {
           }
         }).catch(err => setOpenLoadingDialog(true))
       })
-
-
-
   }
 
+
+
+
+
+  // const onCreateEmailAll = (CriarTodosEmails) => {
+  //   setOpenLoadingDialog(true);
+  //   const token = getCookie("_token_task_manager");
+  //   const params = {
+  //     method: 'POST',
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //       'Authorization': `Bearer ${token}`
+  //     },
+  //     body: JSON.stringify({ CriarTodosEmails })
+  //   };
+
+  //   fetch(`${process.env.REACT_APP_DOMAIN_API}/api/aluno/createAllEmailInstitucional`, params)
+  //     .then(response => {
+  //       const { status } = response;
+  //       response.json().then(data => {
+  //         setOpenLoadingDialog(false);
+  //         if (status === 401) {
+  //           alert(data.message);
+  //           console.error('Erro de autenticação:', data.message);
+  //         } else if (status === 200) {
+  //           console.log('Resultado do backend:', data.resultados);
+  //           alert(`Processo concluído: ${data.message}`);
+  //           // Exibir os detalhes na tela ou em logs adicionais
+  //           data.resultados.forEach(resultado => {
+  //             console.log(`Aluno ID: ${resultado.alunoId}, Status: ${resultado.status}`);
+  //           });
+  //           window.location.reload();
+  //         }
+  //       }).catch(err => {
+  //         setOpenLoadingDialog(false);
+  //         console.error('Erro no parsing da resposta:', err);
+  //         alert('Erro ao processar resposta do servidor');
+  //       });
+  //     })
+  //     .catch(err => {
+  //       setOpenLoadingDialog(false);
+  //       console.error('Erro na requisição:', err);
+  //       alert('Erro ao conectar com o servidor');
+  //     });
+  // };
+
   const onCreateEmailAll = (CriarTodosEmails) => {
-    setOpenLoadingDialog(true);
+    setIsLoading(true);
     const token = getCookie("_token_task_manager");
     const params = {
       method: 'POST',
@@ -306,69 +420,59 @@ const Alunos = (props) => {
       },
       body: JSON.stringify({ CriarTodosEmails })
     };
-  
+
     fetch(`${process.env.REACT_APP_DOMAIN_API}/api/aluno/createAllEmailInstitucional`, params)
-      .then(response => {
-        const { status } = response;
-        response.json().then(data => {
-          setOpenLoadingDialog(false);
-          if (status === 401) {
-            alert(data.message);
-            console.error('Erro de autenticação:', data.message);
-          } else if (status === 200) {
-            console.log('Resultado do backend:', data.resultados);
-            alert(`Processo concluído: ${data.message}`);
-            // Exibir os detalhes na tela ou em logs adicionais
-            data.resultados.forEach(resultado => {
-              console.log(`Aluno ID: ${resultado.alunoId}, Status: ${resultado.status}`);
-            });
-            window.location.reload();
+      .then(async response => {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let done = false;
+        let receivedData = '';
+
+        while (!done) {
+          const { value, done: readerDone } = await reader.read();
+          done = readerDone;
+
+          // Decode the stream data
+          receivedData += decoder.decode(value, { stream: true });
+
+          // Split the data into complete JSON chunks
+          const chunks = receivedData.split('\n');
+
+          for (let chunk of chunks) {
+            if (chunk) {
+              try {
+                const data = JSON.parse(chunk);
+
+                if (data.status === 'progress') {
+                  console.log(`Progresso: ${data.progress}%`);
+                  setProgress(data.progress); // Atualiza o progresso no estado
+                } else if (data.status === 'done') {
+                  setIsLoading(false);
+                  console.log(`Processo concluído: ${data.message}`);
+                  alert(`Processo concluído: ${data.message}`);
+                  window.location.reload(); // Atualiza a página
+                }
+              } catch (err) {
+                console.error('Erro ao processar chunk JSON:', err);
+              }
+            }
           }
-        }).catch(err => {
-          setOpenLoadingDialog(false);
-          console.error('Erro no parsing da resposta:', err);
-          alert('Erro ao processar resposta do servidor');
-        });
+
+          // Clear processed chunks, saving the partial chunk for the next iteration
+          receivedData = chunks[chunks.length - 1];
+        }
       })
       .catch(err => {
-        setOpenLoadingDialog(false);
+        setIsLoading(false);
         console.error('Erro na requisição:', err);
         alert('Erro ao conectar com o servidor');
       });
   };
-  
-  
 
 
 
 
-  //   const carregarRegistro = (currentPage, pageSize) => {
-  //     setOpenLoadingDialog(true);
-  //     const token = getCookie('_token_task_manager');
 
-  //     fetch(`${process.env.REACT_APP_DOMAIN_API}/api/turmaAluno/${currentPage}`, {
-  //       headers: {
-  //         'Authorization': `Bearer ${token}`
-  //       }
-  //     })
-  //       .then(response => {
-  //         setOpenLoadingDialog(false);
-  //         if (!response.ok) {
-  //           throw new Error('Erro ao carregar os registros');
-  //         }
-  //         return response.json();
-  //       })
-  //       .then(data => {
-  //         // Atualize o estado dos alunos com os dados retornados
-  //         setAlunos(data.data);
-  //       })
-  //       .catch(error => {
-  //         console.error('Erro ao carregar os registros:', error);
-  //         setOpenLoadingDialog(false);
-  //       });
-  //   };
-
-  // Chame a função carregarRegistro uma vez que o componente é montado
   useEffect(() => {
     carregarRegistro();
     carregarEscolhido()
@@ -397,7 +501,7 @@ const Alunos = (props) => {
         transition: 'background-color 0.3s ease'
       }} onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/home/`}>
         home</button>
-      
+
       <hr></hr>
 
 
@@ -412,7 +516,13 @@ const Alunos = (props) => {
       {/* {alunos.Turma.turmaNome} */}
 
       <b>Turma: </b>{turmaSelecinada ? turmaSelecinada.turmaNome : ''}
-      <b style={{ marginLeft: '10px' }}>Codigo: </b>{turmaSelecinada ? turmaSelecinada.codigoFormatado : ''}
+      <b style={{ marginLeft: '10px' }}>Codigo: </b>{turmaSelecinada ? turmaSelecinada.codigoFormatado : ''}<br></br>
+      <b style={{ marginLeft: '10px' }}>Data Inicio: </b>{turmaSelecinada ? moment(turmaSelecinada.dataInicio).format('DD/MM/YYYY') : ''}
+     
+      <b style={{ marginLeft: '10px' }}>Data Fim: </b>{turmaSelecinada ? moment(turmaSelecinada.dataTermino).format('DD/MM/YYYY') : ''}
+      {/* <b style={{ marginLeft: '10px' }}>Data Fim: </b>{turmaSelecinada ? turmaSelecinada.dataTermino : ''}
+      Início: {moment(turmaSelecinada.dataInicio).format('DD/MM/YYYY')}<br />
+          Fim: {moment(turmaSelecinada.dataTermino).format('DD/MM/YYYY')}<br /> */}
       <a
         style={{
           marginLeft: '10px',
@@ -483,24 +593,57 @@ const Alunos = (props) => {
                 Selecionar todos
               </label><br></br>
 
-              {CriarTodosEmails.length > 0?
-               <button
-               onClick={() => onCreateEmailAll(CriarTodosEmails)}
-               style={{
-                 padding: '10px 20px',
-                 marginTop: '12px',
-                 backgroundColor: 'red',
-                 color: '#FFFFFF',
-                 border: 'none',
-                 borderRadius: '6px',
-                 cursor: 'pointer',
-                 alignSelf: 'flex-end',
-                 fontSize: '14px',
-                 fontWeight: 'bold',
-               }}
-             >
-               criar emails @edu.pe.senac para todos
-             </button>:''}
+              {CriarTodosEmails.length > 0 ?
+                <div>
+
+                  <div>
+                    <button
+                      style={{
+                        padding: '10px 20px',
+                        marginTop: '12px',
+                        backgroundColor: 'red',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        alignSelf: 'flex-end',
+                        fontSize: '14px',
+                        fontWeight: 'bold',
+                      }}
+
+                      onClick={() => onCreateEmailAll(CriarTodosEmails)} disabled={isLoading}>
+                      {isLoading ? 'Criando emails @edu.pe.senac.br...' : 'Criar Todos os Emails'}
+                    </button>
+
+                    {isLoading && (
+                      <div style={{ marginTop: '20px', width: '100%', textAlign: 'center' }}>
+                      <p style={{ marginBottom: '10px', fontSize: '16px', fontWeight: 'bold' }}>
+                        Progresso: {progress}%
+                      </p>
+                      <div style={{
+                        width: '100%',
+                        backgroundColor: '#f3f3f3',
+                        borderRadius: '12px',
+                        height: '24px',
+                        overflow: 'hidden',
+                        boxShadow: '0px 3px 6px rgba(0, 0, 0, 0.1)'
+                      }}>
+                        <div style={{
+                          width: `${progress}%`,
+                          height: '100%',
+                          backgroundColor: progress < 100 ? '#4caf50' : '#00c853',  // Verde quando carregando e verde mais intenso ao concluir
+                          transition: 'width 0.4s ease-in-out',
+                          borderRadius: '12px',
+                        }}></div>
+                      </div>
+                    </div>
+                    )}
+                  </div>
+
+
+                </div>
+
+                : ''}
             </div>
 
             {alunos
@@ -582,24 +725,56 @@ const Alunos = (props) => {
                 Selecionar todos
               </label><br></br>
 
-              {VincularTodosEmails.length > 0?
-               <button
-               onClick={() => onVinculateEmailAll(VincularTodosEmails)}
-               style={{
-                 padding: '10px 20px',
-                 marginTop: '12px',
-                 backgroundColor: 'red',
-                 color: '#FFFFFF',
-                 border: 'none',
-                 borderRadius: '6px',
-                 cursor: 'pointer',
-                 alignSelf: 'flex-end',
-                 fontSize: '14px',
-                 fontWeight: 'bold',
-               }}
-             >
-               vincular alunos a turma TEAMS
-             </button>:''}
+              {VincularTodosEmails.length > 0 ?
+
+                <div>
+                  <button
+                    style={{
+                      padding: '10px 20px',
+                      marginTop: '12px',
+                      backgroundColor: 'red',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      alignSelf: 'flex-end',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                    }}
+                    onClick={() => onVinculateEmailAll(VincularTodosEmails)}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Vinculando a turma TEAMS...' : 'Vincular ao TEAMS'}
+                  </button>
+
+                  {isLoading && (
+                    <div style={{ marginTop: '20px', width: '100%', textAlign: 'center' }}>
+                    <p style={{ marginBottom: '10px', fontSize: '16px', fontWeight: 'bold' }}>
+                      Progresso: {progress}%
+                    </p>
+                    <div style={{
+                      width: '100%',
+                      backgroundColor: '#f3f3f3',
+                      borderRadius: '12px',
+                      height: '24px',
+                      overflow: 'hidden',
+                      boxShadow: '0px 3px 6px rgba(0, 0, 0, 0.1)'
+                    }}>
+                      <div style={{
+                        width: `${progress}%`,
+                        height: '100%',
+                        backgroundColor: progress < 100 ? '#4caf50' : '#00c853',  // Verde quando carregando e verde mais intenso ao concluir
+                        transition: 'width 0.4s ease-in-out',
+                        borderRadius: '12px',
+                      }}></div>
+                    </div>
+                  </div>
+                  )}
+                </div>
+
+
+
+                : ''}
             </div>
             {alunos
               .filter(item => item.Aluno.emailCriado === true &&
@@ -624,7 +799,8 @@ const Alunos = (props) => {
                   }}
                 >
                   <div style={{ fontSize: 14, margin: '4px 0', fontWeight: '600' }}>
-                    <b>Nome:</b> {item.Aluno.nome}
+                    <b>Nome:</b> {item.Aluno.nome}<br></br>
+                    <b>Email Senac:</b> {item.Aluno.email}
                   </div>
                   <div style={{ fontSize: 14, margin: '4px 0', fontWeight: '600' }}>
                     <b>
@@ -833,9 +1009,9 @@ const Alunos = (props) => {
       </Dialog> */}
 
       <Dialog open={openLoadingDialog}>
-        Tempo médio do serviço e de 1 minuto
+        
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: 120, height: 120 }}>
-        <img src={aguarde} height={100} alt="Logo" />
+          <img src={aguarde} height={100} alt="Logo" />
         </div>
       </Dialog>
       {/* <Dialog

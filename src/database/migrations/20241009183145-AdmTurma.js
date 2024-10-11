@@ -23,12 +23,12 @@ module.exports = {
       nome: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique: true
+
       },
       unidade: {
         type: Sequelize.STRING,
-        allowNull: false,
-        unique: true
+        allowNull: true,
+  
       },
      
       createdAt: {

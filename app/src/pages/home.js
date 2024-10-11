@@ -48,6 +48,11 @@ const Home = (props) => {
 
 
   const [idEquipe, setIdEquipe] = useState('');
+
+  const [nomeUnidadeSeklect, setNomeUnidadeSeklect] = useState('');
+  const [tutoresDaUnidade, setTutoresDaUnidade] = useState([]);
+
+
   const [responsavel, setResponsavel] = useState([])
   const [unidades, setUnidades] = useState([])
 
@@ -55,10 +60,39 @@ const Home = (props) => {
     carregarResponsavel()
     carregarUnidades()
 
+
+    function buscatTutorporUnidade(nomeUnidadeSeklect) {
+      // alert(id)
+      setOpenLoadingDialog(true)
+      const token = getCookie("_token_task_manager")
+      const params = {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      }
+      fetch(`${process.env.REACT_APP_DOMAIN_API}/api/admTurma/${nomeUnidadeSeklect}`, params)
+        .then(response => {
+          const { status } = response
+          response.json().then(data => {
+            setOpenLoadingDialog(false)
+            if (status === 401) {
+              // setMessage(data.message)
+              // setOpenMessageDialog(true)
+            } else if (status === 200) {
+              setOpenLoadingDialog(false)
+              setTutoresDaUnidade(data.data)
+
+            }
+          }).catch(err => setOpenLoadingDialog(false))
+        })
+    }
+
+
+
     let timeoutId;
 
 
-    if (pesquisa.length > 6) {
+    if (pesquisa.length > 2) {
       timeoutId = setTimeout(() => {
         pesquisar();
       }, 10); // Executa a cada 5 segundos
@@ -68,7 +102,18 @@ const Home = (props) => {
     // if(turmaSelecionada){
     //   alert(JSON.stringify(turmaSelecionada))
     // }
-  }, [pesquisa,responsavel]);
+
+    if (nomeUnidadeSeklect) {
+
+      buscatTutorporUnidade(nomeUnidadeSeklect)
+    }
+
+
+
+
+
+  }, [pesquisa, nomeUnidadeSeklect]);
+
 
 
 
@@ -137,7 +182,7 @@ const Home = (props) => {
         'Authorization': `Bearer ${token}`
       }
     }
-    fetch(`${process.env.REACT_APP_DOMAIN_API}/api/unidade`, params)
+    fetch(`${process.env.REACT_APP_DOMAIN_API}/api/area`, params)
       .then(response => {
         const { status } = response
         response.json().then(data => {
@@ -193,16 +238,16 @@ const Home = (props) => {
     setOpenLoadingDialog(true)
     const token = getCookie('_token_task_manager')
     const params = {
-      method: 'POST', 
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         cadEmailAdm,
         unidadeAdm,
         nomeAdm
-      }) 
+      })
     }
 
     fetch(`${process.env.REACT_APP_DOMAIN_API}/api/admTurma/`, params)
@@ -210,23 +255,25 @@ const Home = (props) => {
         const { status } = response
         response.json().then(data => {
           setOpenLoadingDialog(false)
-          if(status === 401) {  
+          if (status === 401) {
             alert(data.message)
             setOpenMessageDialog(true)
-        
-          } else if(status === 200) {
+
+          } else if (status === 200) {
             alert(data.message)
             setOpenMessageDialog(true)
-           
+            window.location.reload();
+
           }
         }).catch(err => setOpenLoadingDialog(true))
       })
   }
 
- 
-  const handleCriarEquipe1 = async (turmaId) => {
+
+  const handleCriarEquipe1 = async (turmaId, nomeUnidade) => {
 
     setModelAdmTeams(true)
+    setNomeUnidadeSeklect(nomeUnidade)
     setIdEquipe(turmaId)
 
 
@@ -301,8 +348,8 @@ const Home = (props) => {
         borderRadius: '4px', cursor: 'pointer',
         transition: 'background-color 0.3s ease'
       }} onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/config/`}>
-        <BuildCircleIcon/>
-        </button>
+        <BuildCircleIcon />
+      </button>
       <hr></hr>
 
 
@@ -345,6 +392,7 @@ const Home = (props) => {
               </tr>
               <tr style={{ backgroundColor: '#F3F2F1', color: '#333', fontSize: '16px' }}>
                 <td style={{ padding: '10px' }}>Turma</td>
+                <td style={{ padding: '10px' }}>Unidade</td>
                 <td style={{ padding: '10px' }}>Código</td>
                 <td style={{ padding: '10px' }}>Ações</td>
               </tr>
@@ -353,6 +401,7 @@ const Home = (props) => {
               {turmaSelecionada.map((item, index) => (
                 <tr key={index} style={{ borderBottom: '1px solid #E1E1E1', color: '#333' }}>
                   <td style={{ padding: '10px' }}>{item.turmaNome ? item.turmaNome : ''}</td>
+                  <td style={{ padding: '10px' }}>{item.unidade ? item.unidade : ''}</td>
                   <td style={{ padding: '10px' }}>{item.codigoFormatado ? item.codigoFormatado : ''}</td>
                   <td style={{ padding: '10px', textAlign: 'center' }}>
                     <div>
@@ -375,7 +424,7 @@ const Home = (props) => {
                               fontSize: '14px',
                               fontWeight: '600'
                             }}
-                            onClick={() => handleCriarEquipe1(item.id)}
+                            onClick={() => handleCriarEquipe1(item.id, item.unidade)}
                           >
                             Criar equipe no Teams
                           </button>
@@ -455,11 +504,20 @@ const Home = (props) => {
                 label="Unidade"
                 value={emailAdm}>
 
-                {responsavel.map((item, index) => {
-
-                  return <MenuItem key={index} value={item.id} onClick={(e) => [setEmailAdm(item.email)]}>{item.nome}-{item.unidade}</MenuItem>
-
-                })}
+                {responsavel
+                  .filter((item) => item.unidade === nomeUnidadeSeklect)  // Filtra os itens onde unidade é igual a nomeUnidade
+                  .map((item, index) => {
+                    return (
+                      <MenuItem
+                        key={index}
+                        value={item.id}
+                        onClick={(e) => setEmailAdm(item.email)}
+                      >
+                        {item.nome} - {item.unidade}
+                      </MenuItem>
+                    );
+                  })
+                }
               </Select>
             </FormControl>
 
@@ -492,7 +550,7 @@ const Home = (props) => {
             ?
             <Button onClick={() => handleCriarEquipe()}>Criar equipe TEAMS </Button>
             : ''}
-            <p></p>
+          <p></p>
 
 
 
@@ -514,66 +572,66 @@ const Home = (props) => {
           />
 
           {perfilVisivelAtual ?
-           <div style={{ 
-            display: 'grid', 
-            gap: '20px', 
-            width: '100%', 
-            maxWidth: '500px', 
-            padding: '20px', 
-            margin: '0 auto', 
-            backgroundColor: '#f4f4f9', 
-            borderRadius: '8px', 
-            boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)' 
-          }}>
-            Cadastre funcionários para administrar turmas TEAMS<hr></hr>
-            <TextField
-              id="Nome"
-              label="Email Institucional"
-              type="text"
-              name="Nome"
-           
-              value={cadEmailAdm}
-              onChange={e => setCadEmailAdm(e.target.value)}
-              fullWidth
-              InputLabelProps={{ style: { color: '#555' } }}
-            />
-            
-            <TextField
-              id="Email"
-              label="Nome"
-              type="text"
-              name="Email"
-           
-              value={nomeAdm}
-              onChange={e => setNomeAdm(e.target.value)}
-              fullWidth
-              InputLabelProps={{ style: { color: '#555' } }}
-            />
-          
-            <FormControl fullWidth size="small">
-              <InputLabel id="demo-select-small" style={{ color: '#555' }}>Unidade</InputLabel>
-              <Select
-                fullWidth
-                labelId="demo-select-small"
-                id="demo-select-small"
-                value={unidadeAdm}
-                onChange={(e) => setUnidadeAdm(e.target.value)}
-                style={{ color: '#333' }}
-              >
-                {unidades.map((lista, key) => (
-                  <MenuItem key={key} value={lista.nome}>
-                    {lista.nome}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <div style={{
+              display: 'grid',
+              gap: '20px',
+              width: '100%',
+              maxWidth: '500px',
+              padding: '20px',
+              margin: '0 auto',
+              backgroundColor: '#f4f4f9',
+              borderRadius: '8px',
+              boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)'
+            }}>
+              Cadastre funcionários para administrar turmas TEAMS<hr></hr>
+              <TextField
+                id="Nome"
+                label="Email Institucional"
+                type="text"
+                name="Nome"
 
-            {cadEmailAdm && unidadeAdm && nomeAdm
-            ?
-            <Button onClick={() => cadastrarAdministrador()}>Cadastrar Administrador de turmas </Button>
-            : ''}
-          </div>
-          
+                value={cadEmailAdm}
+                onChange={e => setCadEmailAdm(e.target.value)}
+                fullWidth
+                InputLabelProps={{ style: { color: '#555' } }}
+              />
+
+              <TextField
+                id="Email"
+                label="Nome"
+                type="text"
+                name="Email"
+
+                value={nomeAdm}
+                onChange={e => setNomeAdm(e.target.value)}
+                fullWidth
+                InputLabelProps={{ style: { color: '#555' } }}
+              />
+
+              <FormControl fullWidth size="small">
+                <InputLabel id="demo-select-small" style={{ color: '#555' }}>Unidade</InputLabel>
+                <Select
+                  fullWidth
+                  labelId="demo-select-small"
+                  id="demo-select-small"
+                  value={unidadeAdm}
+                  onChange={(e) => setUnidadeAdm(e.target.value)}
+                  style={{ color: '#333' }}
+                >
+                  {unidades.map((lista, key) => (
+                    <MenuItem key={key} value={lista.nome}>
+                      {lista.nome}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              {cadEmailAdm && unidadeAdm && nomeAdm
+                ?
+                <Button onClick={() => cadastrarAdministrador()}>Cadastrar Administrador de turmas </Button>
+                : ''}
+            </div>
+
             : 'cadastrar novo administrador de turmas TEAMS'}
 
 

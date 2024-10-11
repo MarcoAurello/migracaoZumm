@@ -35,6 +35,7 @@ module.exports = {
         criadoNoTeams: false,
         idTurmaTeams:'sasasaas',
         ativo: true,
+        unidade:'aaa',
         linkTurma:'1',
     
         fkUnidade: unidade[0][0].id,
