@@ -506,12 +506,6 @@ const Alunos = (props) => {
 
 
 
-
-
-
-
-
-
       <p></p>
       {/* {alunos.Turma.turmaNome} */}
 
