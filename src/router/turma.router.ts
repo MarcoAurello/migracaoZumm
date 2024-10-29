@@ -15,6 +15,8 @@ class TurmaRouter {
   private routers () {
     this.router.get('/search/', controller.search)
     this.router.get('/', controller.all)
+    this.router.get('/viewProfessores', controller.viewProfessores)
+    this.router.get('/viewTurma', controller.viewTurma)
     this.router.post('/', controller.create)
     this.router.post('/criarEquipe/:turmaId', controller.criarEquipe)
     this.router.get('/:id', controller.find)

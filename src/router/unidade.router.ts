@@ -16,6 +16,7 @@ class UnidadeRouter {
   private routers () {
     this.router.get('/search/', controller.search)
     this.router.get('/', controller.all)
+    this.router.get('/unidadeView', controller.unidadeView)
     this.router.post('/', routerMiddleware.role([PerfilUtils.Administrador]), controller.create)
     this.router.get('/:id', controller.find)
     this.router.post('/:id/edit', routerMiddleware.role([PerfilUtils.Administrador]), controller.update)

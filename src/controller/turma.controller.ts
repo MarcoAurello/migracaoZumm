@@ -11,11 +11,17 @@ import TurmaAluno from '../model/turmaaluno.model';
 const qs = require('qs');
 const axios = require('axios');
 import turmaalunoController from './turmaaluno.controller';
-import admTurmaController from './admTurma.controller';
+import Erro1 from '../model/erro.model';
 import AdmTurma from '../model/admTurma.model';
 import emailUtils from '../utils/email.utils';
 import Area from '../model/area.model';
 import Unidade from '../model/unidade.model';
+import sequelize from '../model/connection';
+import { JsxEmit } from 'typescript';
+import { Json } from 'sequelize/lib/utils';
+import Profissional from '../model/profissional.model';
+import TurmaProfissional from '../model/turmaProfissional.model';
+import erroController from './erro.controller';
 // const { uuid } = require('uuidv4')
 const { v4: uuid } = require('uuid');
 const getAccessToken = require('../utils/authConfig');
@@ -37,6 +43,34 @@ async function obterToken() {
     return response.data.access_token;
   } catch (error) {
     console.error("Erro ao obter token:", error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
+
+async function adicionarMembroEquipe(teamId, userId) {
+  const token = await obterToken();
+  const endpoint = `https://graph.microsoft.com/v1.0/teams/${teamId}/members`;
+
+  const membro = {
+    "@odata.type": "#microsoft.graph.aadUserConversationMember",
+    "roles": ["owner"],
+    "user@odata.bind": `https://graph.microsoft.com/v1.0/users/${userId}`
+  };
+
+
+  const headers = {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  };
+
+  try {
+    const response = await axios.post(endpoint, membro, { headers });
+    console.log('Membro adicionado:', response.data);
+
+
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao adicionar membrorry:', error.response ? error.response.data : error.message);
     throw error;
   }
 }
@@ -169,6 +203,50 @@ class TurmaController implements IController {
     }
   }
 
+  async viewProfessores(req: Request, res: Response, next: NextFunction): Promise<any> {
+    try {
+
+      const [registro] = await sequelize.query(`
+        SELECT * FROM [provisionadorsigteams].[dbo].[profissional]
+      `);
+
+
+
+      res
+        .status(200)
+        .json({ data: registro, message: "Vinculo Criado. " });
+    } catch (err) {
+      console.log(err);
+      res.status(401).json({ message: err.errors[0].message });
+    }
+  }
+
+
+  async viewTurma(req: Request, res: Response, next: NextFunction): Promise<any> {
+    try {
+
+      const [registro] = await sequelize.query(`
+       SELECT DISTINCT [fkTurma]
+FROM [ProvisionadorSigTeams].[dbo].[TurmaProfissional]
+
+      `);
+
+      // console.log('vbvbvb' + registro)
+
+      res
+        .status(200)
+        .json({ data: registro, message: "Vinculo Criado. " });
+    } catch (err) {
+      console.log(err);
+      res.status(401).json({ message: err.errors[0].message });
+    }
+  }
+
+
+
+
+
+
   async create(req: Request, res: Response, next: NextFunction): Promise<any> {
     throw new Error("Method not implemented.");
   }
@@ -291,45 +369,52 @@ class TurmaController implements IController {
 
   async search(req: any, res: Response, next: NextFunction): Promise<any> {
     try {
-      const { pesquisa } = req.query
-      console.log(pesquisa)
-
-
-      const registros = await Turma.findAll({
+      const { pesquisa } = req.query;
+      console.log(pesquisa);
+  
+      // Consulta no modelo Turma
+      const turmas = await Turma.findAll({
         where: {
-            [Op.or]: [
-                { turmaNome: { [Op.like]: `%${pesquisa}%` } },
-                { codigoFormatado: { [Op.like]: `%${pesquisa}%` } },
-            ]
+          [Op.or]: [
+            { idTurma: { [Op.like]: `%${pesquisa}%` } },
+          ],
         },
-        // include: [
-        //     {
-        //         model: Unidade,  // Inclui a tabela de Unidade
-        //         as: 'Unidade',  // Alias (garante que '$Unidade.nome$' funcione)
-        //         include: [
-        //             {
-        //                 model: Area,  // Inclui a tabela de Área relacionada à Unidade
-        //                 as: 'Area'  // Alias (garante que '$Unidade.Area.nome$' funcione)
-        //             }
-        //         ]
-        //     }
-        // ]
-    });
-    
-
-
-
-      console.log("______________" + JSON.stringify(registros))
-
-      res.status(200).json({ data: registros })
+      });
+  
+      // Consulta no modelo Aluno
+      const alunos = await Aluno.findAll({
+        where: {
+          [Op.or]: [
+            { fkAluno: { [Op.like]: `%${pesquisa}%` } },
+          ],
+        },
+      });
+  
+      // Consulta no modelo Profissional
+      const profissionais = await Profissional.findAll({
+        where: {
+          [Op.or]: [
+            { fkProfissional: { [Op.like]: `%${pesquisa}%` } },
+          ],
+        },
+      });
+  
+      // Combina os resultados das três consultas
+      const registros = [
+        ...turmas.map(turma => ({ ...turma.toJSON(), tipo: 'turma' })),
+        ...alunos.map(aluno => ({ ...aluno.toJSON(), tipo: 'aluno' })),
+        ...profissionais.map(profissional => ({ ...profissional.toJSON(), tipo: 'profissional' }))
+      ];
+  
+      res.status(200).json({ data: registros });
     } catch (err) {
-      console.log(err)
+      console.log(err);
       if (typeof err.errors !== 'undefined') {
-        res.status(401).json({ message: err.errors[0].message })
+        res.status(401).json({ message: err.errors[0].message });
       } else if (typeof err.message !== 'undefined') {
-        res.status(401).json({ message: err.message })
+        res.status(401).json({ message: err.message });
       } else {
-        res.status(401).json({ message: 'Aconteceu um erro no processamento da requisição, por favor tente novamente.' })
+        res.status(401).json({ message: 'Aconteceu um erro no processamento da requisição, por favor tente novamente.' });
       }
     }
   }
@@ -353,317 +438,240 @@ class TurmaController implements IController {
   }
 
 
-  // async migracaoService() {
-  //   try {
-  //     // Execute a consulta SQL para obter os dados de migração
-  //     const result = await Migracao.sequelize?.query(`
-  //          SELECT
-  //               A.AlunoId,
-  //               A.AlunoNome,
-  //               A.AlunoCPF,
-  //               A.AlunoEmail,
-  //               T.TurmaId,
-  //               T.TurmaNome,
-  //               T.TurmaCodigoFormatado,
-  //               T.TurmaSituacao,
-  //               T.TurmaDataDeInicio,
-  //               T.TurmaDataDeTermino,
-  //               T.TurmaAdiada,
-  //               M.TurmaCodigoFormatado,
-  //               U.UnidadeOperativaSigla Unidade
-  //           FROM
-  //               [DATASET_SIG].dbo.Analise_Turma T
-  //           INNER JOIN
-  //               [DATASET_SIG].dbo.Analise_Matricula M ON M.TurmaId = T.TurmaId
-  //           INNER JOIN
-  //               [DATASET_SIG].dbo.Analise_Aluno A ON M.AlunoId = A.AlunoId
-  //           INNER JOIN
-  //               [DATASET_SIG].dbo.Analise_RegionalUOP U ON T.UnidadeOperativaId = U.UnidadeOperativaId
-  //           WHERE
-  //             (T.TurmaSituacao = 'Liberada para Matrícula' OR T.TurmaSituacao = 'Em Processo')
-               
-  //       `);
+ 
 
-  //     const todosAlunos = await Aluno.findAll({});
-  //     const todasTurmas = await Turma.findAll({});
+  async verificarProfissionalService() {
+    try {
+      // Buscar as turmas que não possuem Teams vinculados
+      const turmaSemTeams = await Turma.findAll({
+        where: { idTurmaTeams: null },
 
+      });
 
-  //     for (const item of result[0]) {
-  //       let turmaJaExiste = false;
+      console.log('bil' + JSON.stringify(turmaSemTeams));
 
-  //       // Verificar se alguma turma existente tem o mesmo código
-  //       for (const turma of todasTurmas) {
-  //         if (turma.codigoFormatado === item['TurmaCodigoFormatado']) {
-  //           turmaJaExiste = true;
-  //           console.log('Turma já existe:', item['TurmaCodigoFormatado']);
-  //           break; // Sair do loop assim que encontrar uma turma existente
-  //         }
-  //       }
+      const idsTurmasSemTeams = turmaSemTeams.map(turma => turma.idTurma);
+      console.log('idsTurmasSemTeams' + idsTurmasSemTeams)
 
-  //       // Se a turma não existir, criar uma nova turma
-  //       if (!turmaJaExiste) {
-  //         console.log('Turma criada:', item['TurmaCodigoFormatado']);
+      // Realizar a consulta na tabela `TurmaProfissional` com base nos IDs obtidos
+      if (idsTurmasSemTeams.length > 0) {
+        const [result] = await sequelize.query(`
+          SELECT tp.*, p.email
+          FROM [provisionadorsigteams].[dbo].[TurmaProfissional] tp
+          JOIN [provisionadorsigteams].[dbo].[Profissional] p
+            ON tp.fkProfissional = p.id
+          WHERE tp.fkTurma IN (:idsTurmasSemTeams)
+        `, {
+          replacements: { idsTurmasSemTeams },
+        });
 
-  //         const turmaNome = item['TurmaNome'] || 'Nome Indefinido';
-  //         const unidade = item['Unidade'] || 'Nome Indefinido';
-  //         const codigoFormatado = item['TurmaCodigoFormatado'] || 'Código Indefinido';
-  //         const dataInicio = item['TurmaDataDeInicio'] || new Date().toISOString();
-  //         const dataTermino = item['TurmaDataDeTermino'] || new Date().toISOString();
+        console.log('result' + JSON.stringify(result))
 
-  //         const novaTurma = {
-  //           id: uuid(),
-  //           turmaNome,
-  //           codigoFormatado,
-  //           dataInicio,
-  //           dataTermino,
-  //           ativo: true,
-  //           unidade,
-  //           criadoNoTeams: false,
-  //           fkUnidade: '7b284481-24fc-466e-97c3-300d86619425'
-  //         };
+        const turmasVistas = new Set();
 
-  //         // Crie a nova turma no banco de dados
-  //         await Turma.create(novaTurma);
+        for (const item of result) {
+          const { fkTurma, fkProfissional } = item;
 
-  //         // Atualize a lista todasTurmas após criar a nova turma
-  //         todasTurmas.push(novaTurma);
-  //       }
-  //     }
+          // Verifica se já vimos essa fkTurma
+          if (!turmasVistas.has(fkTurma)) {
+            // Adiciona a fkTurma ao conjunto
+            turmasVistas.add(fkTurma);
 
+            // Executa a ação de update na turma
+            console.log(`Atualizar turma com fkTurma: ${fkTurma}`);
+            const turmaAtual = await Turma.findOne({
+              where: { idTurma: fkTurma }
 
-  //     for (const item of result[0]) {
-  //       const alunoExistente = await Aluno.findOne({
-  //         where: { cpf: item['AlunoCPF'] }
-  //       });
+            });
 
-  //       if (!alunoExistente) {
-  //         console.log('Criando novo aluno');
+            await TurmaProfissional.create({
+              id: uuid(),
+              fkTurma: fkTurma,
+              fkProfissional:fkProfissional
+            })
+            const token = await obterToken();
+            const nome = turmaAtual?.turmaNome + ' GTI';
+            const codigo = turmaAtual?.codigoFormatado;
+            //alterar paraprovisionadorteams@pe.senac.br
+            const user = await obterUsuarios('provisionadorteams@pe.senac.br');
+            if (nome && codigo && user != undefined) {
+              const equipe = await criarEquipe1(token, nome, codigo, user);
+              const linkTurma = equipe.teamLink
+              if (equipe.teamId && linkTurma) {
+                await Turma.update(
+                  {
+                    criadoNoTeams: true,
+                    idTurmaTeams: equipe.teamId,
+                    linkTurma,
+                    status: 'turma criada no Temas'
+                  },
+                  { where: { idTurma: fkTurma } }
+                );
 
-  //         const nome = item['AlunoNome'] || 'Nome Indefinido';
-  //         const cpf = item['AlunoCPF'] || 'Nome Indefinido';
-  //         const email = this.criarEmail(nome, cpf);
+                await Erro1.create({
+                  id: uuid(),
+                  turma :  fkTurma,
+                  descricao:'turma Migrada para Teams: '+turmaAtual ,
+                  corrigido:true
+      
+                })
+              }
+            }
+            console.log('turma:' + JSON.stringify(turmaAtual));
+          }
+          console.log('email professor:' + JSON.stringify(item.email));
 
+          if (item.email.includes('@pe.senac.br') || item.email.includes('@edu.pe.senac.br')) {
+            console.log('vinculando professor:' + JSON.stringify(item.email));
+            const userIdProf = await obterUsuarios(item.email)
+            const turmaTemns = await Turma.findOne({
+              where: { idTurma: fkTurma },
+            });
+            const idTemansTurma = turmaTemns?.idTurmaTeams
 
-  //         let novoAluno;
+            if(idTemansTurma &&userIdProf ){
+              const membroAdicionado = await adicionarMembroEquipe(idTemansTurma, userIdProf)
+              const profissional = await Profissional.create({
+                id: uuid(),
+                fkTeams: turmaTemns?.id,
+                fkProfissional: item.fkProfissional
+              });
+              await Erro1.create({
+                id: uuid(),
+                
+                profissional :  item?.fkProfissional,
+                descricao:'Profissional Vinculado:'+ item.email,
+                corrigido:true
+    
+              })
 
-  //         if (item['AlunoEmail'] && item['AlunoEmail'].includes('@edu.pe.senac.br')) {
-  //           novoAluno = {
-  //             id: uuid(),
-  //             nome,
-  //             cpf,
-  //             email: item['AlunoEmail'],
-  //             emailCadastro: item['AlunoEmail'],
-  //             // emailCadastro: 'marconunes@pe.senac.br',
-  //             emailCriado: true,  // Se o e-mail tiver o domínio, marca como criado
-  //             emailCadastroESenac: true,
-  //             ativo: true,
-  //             criadoNoTeams: false,
-  //             alunoVinculado: false
-  //           };
-  //         } else {
-  //           novoAluno = {
-  //             id: uuid(),
-  //             nome,
-  //             cpf,
-  //             email,
-  //             emailCadastro: item['AlunoEmail'] || '',
-  //             // emailCadastro: 'marconunes@pe.senac.br',
-  //             emailCriado: false,  // Se não tiver o domínio, marca como não criado
-  //             emailCadastroESenac: false,
-  //             ativo: true,
-  //             criadoNoTeams: false,
-  //             alunoVinculado: false
-  //           };
-  //         }
+         
+            }
 
 
-  //         // const novoAluno = {
-  //         //   id: uuid(),
-  //         //   nome,
-  //         //   cpf,
-  //         //   email,
-  //         //   emailCadastro : item['AlunoEmail'],
-  //         //   emailCriado:false,
-  //         //   ativo: true,
-  //         //   criadoNoTeams: false,
-  //         //   alunoVinculado:false
-  //         // };
-
-  //         await Aluno.create(novoAluno);
-
-  //         const alunoCriado = await Aluno.findOne({
-  //           where: { cpf }
-  //         });
+          } else {
+            console.log('não vinculado professor:' + JSON.stringify(item.email));
+            await Erro1.create({
+              id: uuid(),
+              profissional :  item?.fkProfissional,
+              descricao:'Profissional não Vinculado ' + item.email,
+              corrigido:false
+            
+            })
 
 
-  //         const turmaAtual = await Turma.findOne({
-  //           where: { codigoFormatado: item['TurmaCodigoFormatado'] }
-  //         });
 
+          }
+        }
 
-  //         if (turmaAtual && alunoCriado) {
-  //           console.log('Turma encontrada, criando relação');
+      }
 
-  //           // const novaTurmaAluno = {
-  //           //     id: uuid(),
-  //           //     fkAluno: alunoCriado.id,
-  //           //     fkTurma: turmaAtual.id
-  //           // };
-  //           // console.log(turmaAtual['id'])
+    
 
-
-  //           await TurmaAluno.create({
-  //             id: uuid(),
-  //             fkAluno: alunoCriado.id,
-  //             fkTurma: turmaAtual.id
-  //           });
-  //         } else {
-  //           console.log('Turma não encontrada');
-  //         }
-  //       } else {
-  //         console.log('Aluno já existe');
-  //       }
-  //     }
-
-  //     console.log('Dados migrados com sucesso ao iniciar a aplicação.');
-  //   } catch (err) {
-  //     console.error('Erro ao migrar os dados:', err);
-  //     // Adicione tratamento de erro aqui conforme necessário
-  //   }
-  // }
-
-  // const { v4: uuid } = require('uuid');
+    } catch (err) {
+      console.error('Erro ao migrar os dados:', err);
+    }
+  }
 
   async migracaoService() {
-      try {
-          // Execute a consulta SQL para obter os dados de migração
-          const result = await Migracao.sequelize?.query(`
-              SELECT
-                  A.AlunoId,
-                  A.AlunoNome,
-                  A.AlunoCPF,
-                  A.AlunoEmail,
-                  T.TurmaId,
-                  T.TurmaNome,
-                  T.TurmaCodigoFormatado,
-                  T.TurmaSituacao,
-                  T.TurmaDataDeInicio,
-                  T.TurmaDataDeTermino,
-                  T.TurmaAdiada,
-                  M.TurmaCodigoFormatado,
-                  U.UnidadeOperativaSigla Unidade
-              FROM
-                  [DATASET_SIG].dbo.Analise_Turma T
-              INNER JOIN
-                  [DATASET_SIG].dbo.Analise_Matricula M ON M.TurmaId = T.TurmaId
-              INNER JOIN
-                  [DATASET_SIG].dbo.Analise_Aluno A ON M.AlunoId = A.AlunoId
-              INNER JOIN
-                  [DATASET_SIG].dbo.Analise_RegionalUOP U ON T.UnidadeOperativaId = U.UnidadeOperativaId
-              WHERE
-                  (T.TurmaSituacao = 'Liberada para Matrícula' OR T.TurmaSituacao = 'Em Processo')
-          `);
-  
-          const todosAlunos = await Aluno.findAll({});
-          const todasTurmas = await Turma.findAll({});
-  
-          for (const item of result[0]) {
-              // Verificar se a unidade já existe
-              let unidadeExistente = await Area.findOne({
-                  where: { nome: item['Unidade'] }
-              });
-  
-              // Se a unidade não existir, criá-la
-              if (!unidadeExistente) {
-                  console.log('Criando nova unidade:', item['Unidade']);
-  
-                  let fk = await Unidade.findOne({
-                      where: { nome: 'Gerência de Tecnologia da Informação' }
-                  });
-  
-                  unidadeExistente = await Area.create({
-                      id: uuid(),
-                      nome: item['Unidade'],
-                      descricao: null,
-                      fkUnidade: fk ? fk.id : '789166ff-d6e2-4b76-91d8-e9358c1e6e86', // Verificar se a FK existe
-                      ativa: true
-                  });
-              }
-  
-              let turmaJaExiste = todasTurmas.some(turma => turma.codigoFormatado === item['TurmaCodigoFormatado']);
-              if (turmaJaExiste) {
-                  console.log('Turma já existe:', item['TurmaCodigoFormatado']);
-              } else {
-                  console.log('Turma criada:', item['TurmaCodigoFormatado']);
-  
-                  const novaTurma = {
-                      id: uuid(),
-                      turmaNome: item['TurmaNome'] || 'Nome Indefinido',
-                      codigoFormatado: item['TurmaCodigoFormatado'] || 'Código Indefinido',
-                      dataInicio: item['TurmaDataDeInicio'] || new Date().toISOString(),
-                      dataTermino: item['TurmaDataDeTermino'] || new Date().toISOString(),
-                      unidade: item['Unidade'] || 'Nome Indefinido',
-                      ativo: true,
-                      fkUnidade: unidadeExistente.id,
-                      criadoNoTeams: false
-                  };
-  
-                  await Turma.create(novaTurma);
-                  todasTurmas.push(novaTurma); // Atualizar a lista de turmas
-              }
-          }
-  
-          for (const item of result[0]) {
-              const alunoExistente = await Aluno.findOne({
-                  where: { cpf: item['AlunoCPF'] }
-              });
-  
-              if (!alunoExistente) {
-                  console.log('Criando novo aluno');
-                  const email = item['AlunoEmail'] && item['AlunoEmail'].includes('@edu.pe.senac.br')
-                      ? item['AlunoEmail']
-                      : this.criarEmail(item['AlunoNome'], item['AlunoCPF']);
-  
-                  const novoAluno = {
-                      id: uuid(),
-                      nome: item['AlunoNome'] || 'Nome Indefinido',
-                      cpf: item['AlunoCPF'] || 'CPF Indefinido',
-                      email,
-                      emailCadastro: item['AlunoEmail'] || '',
-                      emailCriado: item['AlunoEmail']?.includes('@edu.pe.senac.br') || false,
-                      emailCadastroESenac: item['AlunoEmail']?.includes('@edu.pe.senac.br') || false,
-                      ativo: true,
-                      criadoNoTeams: false,
-                      alunoVinculado: false
-                  };
-  
-                  await Aluno.create(novoAluno);
-  
-                  const alunoCriado = await Aluno.findOne({ where: { cpf: item['AlunoCPF'] } });
-                  const turmaAtual = await Turma.findOne({ where: { codigoFormatado: item['TurmaCodigoFormatado'] } });
-  
-                  if (turmaAtual && alunoCriado) {
-                      console.log('Turma encontrada, criando relação');
-  
-                      await TurmaAluno.create({
-                          id: uuid(),
-                          fkAluno: alunoCriado.id,
-                          fkTurma: turmaAtual.id
-                      });
-                  } else {
-                      console.log('Turma ou aluno não encontrados');
-                  }
-              } else {
-                  console.log('Aluno já existe');
-              }
-          }
-  
-          console.log('Dados migrados com sucesso ao iniciar a aplicação.');
-      } catch (err) {
-          console.error('Erro ao migrar os dados:', err);
+    try {
+
+      let hoje = new Date();
+      hoje.setDate(hoje.getDate() + 1); // Amanhã
+      const dataAmanha = hoje.toISOString().split('T')[0];
+    
+      const [result] = await sequelize.query(`
+  SELECT t.*, u.nome AS unidadeNome
+  FROM [provisionadorsigteams].[dbo].[Turma] t
+  INNER JOIN [provisionadorsigteams].[dbo].[Unidade] u
+  ON t.fkUnidade = u.id
+  where t.id = 128865
+`);
+      console.log('rel' + JSON.stringify(result))
+
+
+      const todosAlunos = await Aluno.findAll({});
+      const todasTurmas = await Turma.findAll({});
+
+      for (const item of result) {
+        // Verificar se a unidade já existe
+        let unidadeExistente = await Area.findOne({
+          where: { nome: item['unidadeNome'] }
+        });
+
+        // Se a unidade não existir, criá-la
+        if (!unidadeExistente) {
+          console.log('Criando nova unidade:', item['unidadeNome']);
+
+          let fk = await Unidade.findOne({
+            where: { nome: 'Gerência de Tecnologia da Informação' }
+          });
+
+          unidadeExistente = await Area.create({
+            id: uuid(),
+            nome: item['unidadeNome'],
+            descricao: null,
+            fkUnidade: fk ? fk.id : 'indefinido', // Verificar se a FK existe
+            ativa: true
+          });
+        }
+
+        let turmaJaExiste = todasTurmas.some(turma => turma.codigoFormatado === item['codigo']);
+        if (turmaJaExiste) {
+          await Turma.update(
+            {
+              dataInicio: item['dataInicio'],
+              dataTermino: item['dataTermino']
+            },
+            {
+              where: { codigoFormatado: item['codigo'] }
+            }
+          );
+
+          console.log('Turma já existe:', item['codigo']);
+        } else {
+          console.log('Turma criada:', item['codigo']);
+
+          const novaTurma = {
+            id: uuid(),
+            turmaNome: item['nome'] || 'Nome Indefinido',
+            idTurma: item['id'] || 'Nome Indefinido',
+            status: 'turma não criada do Teams',
+            codigoFormatado: item['codigo'] || 'Código Indefinido',
+            dataInicio: item['dataInicio'] || new Date().toISOString(),
+            dataTermino: item['dataTermino'] || new Date().toISOString(),
+            unidade: item['unidadeNome'] || 'Nome Indefinido',
+            ativo: true,
+            fkUnidade: unidadeExistente.id,
+            criadoNoTeams: false
+          };
+
+          await Turma.create(novaTurma);
+
+          console.log('cadastro' +item['id'])
+
+
+          await Erro1.create({
+            id: uuid(),
+            
+            turma :  item['id'],
+            descricao:'turma cadastrada:'+ item['nome'],
+            corrigido:true
+
+          })
+          todasTurmas.push(novaTurma); // Atualizar a lista de turmas
+        }
       }
+
+     
+
+      console.log('Dados migrados com sucesso ao iniciar a aplicação.');
+    } catch (err) {
+      console.error('Erro ao migrar os dados:', err);
+      
+    }
   }
-  
+
 
 }
 

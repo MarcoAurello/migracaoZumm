@@ -9,24 +9,29 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-    await queryInterface.createTable('turmaAluno', {
+    await queryInterface.createTable('teamsAluno', {
       id: {
         type: Sequelize.UUID,
         allowNull: false,
         primaryKey: true
       },
-      fkTurma: {
-        type: Sequelize.STRING,
+      fkTeams: {
+        type: Sequelize.UUID,
         allowNull: true
       },
-      fkAluno: {
-        type: Sequelize.STRING,
+      fkAlunoEmail: {
+        type: Sequelize.UUID,
         allowNull: true
       },
-      criadoNoTeams: {
+      ativo: {
         type: Sequelize.BOOLEAN,
-        allowNull: true,
+        allowNull: false,
       },
+      status: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+
 
 
       createdAt: {
@@ -47,6 +52,6 @@ module.exports = {
      * Example:
      * await queryInterface.dropTable('users');
      */
-    await queryInterface.dropTable('turmaAluno')
+    await queryInterface.dropTable('teamsAluno')
   }
 }

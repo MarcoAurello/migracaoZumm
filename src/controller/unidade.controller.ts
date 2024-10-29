@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { IController } from './controller.inteface'
 import Unidade from '../model/unidade.model'
+import sequelize from '../model/connection'
 
 class UnidadeController implements IController {
   async all (req: Request, res: Response, next: NextFunction): Promise<any> {
@@ -14,6 +15,28 @@ class UnidadeController implements IController {
       res.status(401).json({ message: err.errors[0].message })
     }
   }
+
+  async unidadeView (req: Request, res: Response, next: NextFunction): Promise<any> {
+    try {
+      
+      const [registro] = await sequelize.query(`
+        SELECT * FROM [provisionadorsigteams].[dbo].[unidade]
+      `);
+
+      console.log(registro)
+
+      res
+        .status(200)
+        .json({ data: registro, message: "Vinculo Criado. " });
+    } catch (err) {
+      console.log(err);
+      res.status(401).json({ message: err.errors[0].message });
+    }
+  }
+
+
+
+  
 
   async create (req: Request, res: Response, next: NextFunction): Promise<any> {
     try {

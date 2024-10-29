@@ -26,22 +26,22 @@ module.exports = {
     const unidade = await queryInterface.sequelize.query('select * from unidade where nome = \'Gerência de Tecnologia da Informação\'')
 
     await queryInterface.bulkInsert('turma', [
-      {
-        id: uuid(),
-        turmaNome: 'Ingles22',
-        codigoFormatado: '232323',
-        dataInicio: new Date(),
-        dataTermino: new Date(),
-        criadoNoTeams: false,
-        idTurmaTeams:'sasasaas',
-        ativo: true,
-        unidade:'aaa',
-        linkTurma:'1',
+      // {
+      //   id: uuid(),
+      //   turmaNome: 'Ingles22',
+      //   codigoFormatado: '232323',
+      //   dataInicio: new Date(),
+      //   dataTermino: new Date(),
+      //   criadoNoTeams: false,
+      //   idTurmaTeams:'sasasaas',
+      //   ativo: true,
+      //   unidade:'aaa',
+      //   linkTurma:'1',
     
-        fkUnidade: unidade[0][0].id,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
+      //   fkUnidade: unidade[0][0].id,
+      //   createdAt: new Date(),
+      //   updatedAt: new Date()
+      // },
     
     ], {})
   },

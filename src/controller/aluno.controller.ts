@@ -3,10 +3,17 @@ import { Request, Response, NextFunction } from "express";
 import aluno from "../model/aluno.model";
 import TurmaAluno from '../model/turmaaluno.model';
 import Turma from '../model/turma.model';
+
 import Aluno from '../model/aluno.model';
+import Erro1 from '../model/erro.model';
 import emailUtils from '../utils/email.utils';
+import sequelize from '../model/connection';
+import { json } from 'sequelize';
+import turmaalunoController from './turmaaluno.controller';
 const qs = require('qs');
+const { Op } = require('sequelize');
 const axios = require('axios');
+const { uuid } = require('uuidv4')
 //import Chamado from '../models/chamado-model';
 
 async function obterToken() {
@@ -26,6 +33,12 @@ async function obterToken() {
   }
 }
 
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
+
 function gerarSenha() {
   const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
   let senha = '';
@@ -36,8 +49,11 @@ function gerarSenha() {
   return senha;
 }
 
+
+
+
+
 async function obterUsuarios(variavelEmail) {
-  console.log('xxee' + variavelEmail)
   const token = await obterToken();
   const endpoint = `https://graph.microsoft.com/v1.0/users?$filter=endswith(mail,'${variavelEmail}')&$orderby=userPrincipalName&$count=true`;
 
@@ -57,11 +73,51 @@ async function obterUsuarios(variavelEmail) {
   }
 }
 
+// async function criarEmailInstitucional({ displayName, mailNickname, userPrincipalName, password }) {
+//   const token = await obterToken();
+//   const endpoint = 'https://graph.microsoft.com/v1.0/users';
+
+//   console.log('senha:' + password)
+
+//   const body = {
+//     accountEnabled: true,
+//     displayName,
+//     mailNickname,
+//     userPrincipalName,
+//     usageLocation: "BR",
+//     passwordProfile: {
+//       forceChangePasswordNextSignIn: true,
+//       password
+//     },
+//     passwordPolicies: "DisablePasswordExpiration"
+//   };
+
+//   try {
+//     const response = await axios.post(endpoint, body, {
+//       headers: {
+//         Authorization: `Bearer ${token}`,
+//         'Content-Type': 'application/json'
+//       }
+//     });
+//     console.log('Usuário criado com sucesso:', response.data);
+//     console.log('ccccccccccccccccccc' + JSON.stringify(response.data.id))
+
+//     await darAutorizacao(response.data.id)
+//     await assignLicenseToUser(response.data.id)
+
+//     // atribuirLicenca(response.data.id, '31d57bc7-3a05-4867-ab53-97a17835a411')
+//     return response.data;
+//   } catch (error) {
+//     console.error('Erro ao criar usuário:', error.response ? error.response.data : error.message);
+//     throw error;
+//   }
+// }
+
 async function criarEmailInstitucional({ displayName, mailNickname, userPrincipalName, password }) {
   const token = await obterToken();
   const endpoint = 'https://graph.microsoft.com/v1.0/users';
-  const pass = 'D@v!M!guel2017'
-  console.log('senha:' + password)
+
+  console.log('senha:' + password);
 
   const body = {
     accountEnabled: true,
@@ -83,19 +139,24 @@ async function criarEmailInstitucional({ displayName, mailNickname, userPrincipa
         'Content-Type': 'application/json'
       }
     });
+
     console.log('Usuário criado com sucesso:', response.data);
-    console.log('ccccccccccccccccccc' + JSON.stringify(response.data.id))
+    console.log('ID do usuário criado:', response.data.id);
 
-    await darAutorizacao(response.data.id)
-    await assignLicenseToUser(response.data.id)
+    await darAutorizacao(response.data.id);
+    await assignLicenseToUser(response.data.id);
 
-    // atribuirLicenca(response.data.id, '31d57bc7-3a05-4867-ab53-97a17835a411')
-    return response.data;
+    // Retorna o ID do usuário e o log de sucesso
+    return {
+      successMessage: 'Usuário criado com sucesso',
+      id: response.data.id
+    };
   } catch (error) {
     console.error('Erro ao criar usuário:', error.response ? error.response.data : error.message);
     throw error;
   }
 }
+
 
 
 async function darAutorizacao(userId) {
@@ -183,16 +244,78 @@ async function setUserUsageLocation(userId: string, usageLocation: string) {
 
 
 
+// async function adicionarMembroEquipe(teamId, userId) {
+//   const token = await obterToken();
+//   console.log('9098' + userId)
+
+//   console.log('qqqqqqqqqqqqqqqqqqqqqqqqqqqq' + teamId + 'wwwwww' + userId)
+//   const endpoint = `https://graph.microsoft.com/v1.0/teams/${teamId}/members`;
+
+//   const membro = {
+//     "@odata.type": "#microsoft.graph.aadUserConversationMember",
+//     "roles": ["member"],
+//     "user@odata.bind": `https://graph.microsoft.com/v1.0/users/${userId}`
+//   };
+
+
+//   const headers = {
+//     'Authorization': `Bearer ${token}`,
+//     'Content-Type': 'application/json'
+//   };
+
+//   try {
+//     const response = await axios.post(endpoint, membro, { headers });
+//     console.log('Membro adicionado:', response.data);
+//     return response.data;
+//   } catch (error) {
+//     console.error('Erro ao adicionar membrorr:', error.response ? error.response.data : error.message);
+//     throw error;
+//   }
+// }
+
+
+// async function adicionarMembroEquipe(teamId, userId) {
+//   const token = await obterToken();
+//   const endpointMembros = `https://graph.microsoft.com/v1.0/teams/${teamId}/members`;
+
+//   const headers = {
+//     'Authorization': `Bearer ${token}`,
+//     'Content-Type': 'application/json'
+//   };
+
+//   try {
+//     // Verifica os membros da equipe
+//     const responseMembros = await axios.get(endpointMembros, { headers });
+//     const membros = responseMembros.data.value;
+
+//     // Verifica se o usuário já é um membro
+//     const usuarioJaMembro = membros.some(membro => membro.id === userId);
+    
+//     if (usuarioJaMembro) {
+//       console.log('O usuário já é membro da equipe.');
+//       return;
+//     }
+
+//     // Se o usuário não for membro, adiciona
+//     const membro = {
+//       "@odata.type": "#microsoft.graph.aadUserConversationMember",
+//       "roles": ["member"],
+//       "user@odata.bind": `https://graph.microsoft.com/v1.0/users/${userId}`
+//     };
+
+//     const responseAdicionar = await axios.post(endpointMembros, membro, { headers });
+//     console.log('Membro adicionado:', responseAdicionar.data);
+//     return responseAdicionar.data;
+
+//   } catch (error) {
+//     console.error('Erro:', error.response ? error.response.data : error.message);
+//     throw error;
+//   }
+// }
+
 async function adicionarMembroEquipe(teamId, userId) {
   const token = await obterToken();
-  const endpoint = `https://graph.microsoft.com/v1.0/teams/${teamId}/members`;
-
-  const membro = {
-    "@odata.type": "#microsoft.graph.aadUserConversationMember",
-    "roles": ["member"],
-    "user@odata.bind": `https://graph.microsoft.com/v1.0/users/${userId}`
-  };
-
+  const endpointMembros = `https://graph.microsoft.com/v1.0/teams/${teamId}/members`;
 
   const headers = {
     'Authorization': `Bearer ${token}`,
@@ -200,14 +323,36 @@ async function adicionarMembroEquipe(teamId, userId) {
   };
 
   try {
-    const response = await axios.post(endpoint, membro, { headers });
-    console.log('Membro adicionado:', response.data);
-    return response.data;
+    console.log(`Verificando membros existentes para a equipe ${teamId}...`);
+    const responseMembros = await axios.get(endpointMembros, { headers });
+    const membros = responseMembros.data.value;
+
+    const usuarioJaMembro = membros.some(membro => membro.id === userId);
+    
+    if (usuarioJaMembro) {
+      console.log(`Usuário com ID ${userId} já é membro da equipe ${teamId}.`);
+      return null;  // Retorna null se o usuário já for membro
+    }
+
+    console.log(`Usuário com ID ${userId} não é membro, iniciando processo de adição...`);
+    const membro = {
+      "@odata.type": "#microsoft.graph.aadUserConversationMember",
+      "roles": ["member"],
+      "user@odata.bind": `https://graph.microsoft.com/v1.0/users/${userId}`
+    };
+
+    const responseAdicionar = await axios.post(endpointMembros, membro, { headers });
+    console.log('Membro adicionado com sucesso:', responseAdicionar.data);
+    return responseAdicionar.data;
+
   } catch (error) {
-    console.error('Erro ao adicionar membrorr:', error.response ? error.response.data : error.message);
+    console.error('Erro ao adicionar membro:', error.response ? error.response.data : error.message);
     throw error;
   }
 }
+
+
+
 
 
 class AlunoController implements IController {
@@ -248,139 +393,535 @@ class AlunoController implements IController {
       res.status(500).json({ error: err.message });
       console.error(err);
     }
+
+
+  }
+
+  // async vincularAlunoService() {
+  //   try {
+
+  //     const alunoscomEmailSenac = await Aluno.findAll({
+  //       where: {
+  //         emailCriado: true,
+  //         alunoVinculado: false,
+
+  //       }
+  //     });
+
+  //     if (alunoscomEmailSenac.length > 0) {
+  //       const fkAlunos = alunoscomEmailSenac.map(aluno => aluno.dataValues.fkAluno);
+
+  //       // Passo 3: Buscar as matrículas correspondentes
+  //       const matriculas = await sequelize.query(`
+  //   SELECT m.*
+  //   FROM [provisionadorsigteams].[dbo].[Matricula] m
+  //   WHERE m.fkAluno IN (:fkAlunos) AND
+  //   m.matriculaUltimaSituacao = 'Em Processo'
+  // `, {
+  //         replacements: { fkAlunos }, // Substituindo pelo array de fkAluno
+  //         type: sequelize.QueryTypes.SELECT // Tipo de consulta SELECT
+  //       });
+
+  //       // Agora você tem as matrículas correspondentes
+  //       // console.log(matriculas);
+
+  //       console.log('para vincular:', matriculas);
+
+  //       const turmasDetalhadas = [];
+
+  //       for (const matricula of matriculas) {
+  //         console.log('Processando matrícula:', matricula);
+
+  //         const turma = await Turma.findOne({
+  //           where: { idTurma: matricula.fkTurma } // Buscando pela fkTurma
+  //         });
+
+  //         if (turma) {
+  //           console.log('Turma encontrada:', turma.idTurma);
+
+  //           const emailsProcessados = new Set(); // Armazena emails já processados para evitar duplicação
+
+  //           for (const aluno of alunoscomEmailSenac) {  // Itera sobre os alunos
+  //             if (aluno.email && aluno.email.includes('@edu.pe.senac'
+  //               && aluno.fkAluno
+  //             )) {
+  //               console.log('Verificando aluno:', aluno.email);
+
+  //               // Verifica se o email já foi processado
+  //               if (!emailsProcessados.has(aluno.email)) {
+  //                 console.log('Email ainda não processado, adicionando:', aluno.email);
+
+  //                 const userId = await obterUsuarios(aluno.email);
+  //                 console.log('userId obtido para', aluno.email, ':', userId);
+
+  //                 if (turma.idTurmaTeams && userId.length) {
+  //                   console.log(`Adicionando membro ${userId} à turma ${turma.idTurmaTeams}`);
+  //                   await delay(20000);
+  //                   const migrando = await adicionarMembroEquipe(turma.idTurmaTeams, userId);
+
+  //                   if (migrando) {
+  //                     console.log('Membro adicionado com sucesso, atualizando aluno...');
+  //                     await Aluno.update(
+
+  //                       { alunoVinculado: true },
+  //                       { where: { id: aluno.id } }
+  //                     );
+
+  //                     console.log('Registrando relacionamento entre Turma e Aluno...');
+  //                     await TurmaAluno.create({
+  //                       id: uuid(),
+  //                       fkTurma: turma.idTurma || 'não encontrado',
+  //                       fkAluno: aluno.fkAluno || 'nao encontrado',
+  //                       criadoNoTeams: true
+  //                     });
+
+  //                     await TurmaAluno.update(
+
+  //                       { alunoVinculado: true },
+  //                       { where: { 
+  //                         fkTurma: turma.idTurma,
+  //                         fkAluno: aluno.fkAluno 
+  //                       } }
+  //                     );
+  //                   }
+  //                 }
+
+  //                 // Adiciona o email ao Set para evitar duplicação
+  //                 emailsProcessados.add(aluno.email);
+  //                 console.log('Email adicionado ao conjunto de processados:', aluno.email);
+  //               } else {
+  //                 console.log('Email já processado anteriormente, ignorando:', aluno.email);
+  //               }
+  //             } else {
+  //               console.log('Email inválido ou não autorizado:', aluno.email);
+  //             }
+  //           }
+  //         } else {
+  //           console.log('Turma não encontrada para matrícula:', matricula);
+  //         }
+  //       }
+
+
+  //       // Agora você tem todas as turmas detalhadas
+  //       // console.log('turmaddd'+JSON.stringify(turmasDetalhadas));
+
+
+  //     }
+
+
+
+  //   } catch (err) {
+  //     console.error('Erro ao migrar os dados:', err);
+  //   }
+  // }
+
+  async vincularAlunoService() {
+    try {
+      const alunoscomEmailSenac = await Aluno.findAll({
+        where: {
+          emailCriado: true,
+          alunoVinculado: false,
+        }
+      });
+
+      if (alunoscomEmailSenac.length > 0) {
+        const fkAlunos = alunoscomEmailSenac.map(aluno => aluno.dataValues.fkAluno);
+        
+        const matriculas = await sequelize.query(`
+          SELECT m.*
+          FROM [provisionadorsigteams].[dbo].[Matricula] m
+          WHERE m.fkAluno IN (:fkAlunos) AND
+          m.matriculaUltimaSituacao = 'Em Processo'
+        `, {
+          replacements: { fkAlunos },
+          type: sequelize.QueryTypes.SELECT
+        });
+
+        console.log('Matrículas encontradas para vinculação:', matriculas);
+
+        const emailsProcessados = new Set();
+
+        for (const matricula of matriculas) {
+          const turma = await Turma.findOne({ where: { idTurma: matricula.fkTurma } });
+
+          if (turma) {
+            console.log(`Turma encontrada para matrícula ${matricula.fkAluno}: ${turma.idTurma}`);
+            
+            for (const aluno of alunoscomEmailSenac) {
+              if (aluno.email && aluno.email.includes('@edu.pe.senac') && !emailsProcessados.has(aluno.email)) {
+                const userId = await obterUsuarios(aluno.email);
+                console.log(`userId obtido para ${aluno.email}:`, userId);
+
+                if (turma.idTurmaTeams && userId.length) {
+                  console.log(`Adicionando usuário ${userId} à equipe ${turma.idTurmaTeams}`);
+                  await delay(20000);
+
+                  const migrando = await adicionarMembroEquipe(turma.idTurmaTeams, userId);
+                  
+                  if (migrando) {
+                    console.log(`Atualizando aluno ${aluno.id} como vinculado.`);
+                    await Aluno.update({ alunoVinculado: true }, { where: { id: aluno.id } });
+                    await Erro1.create({
+                      id: uuid(),
+                      aluno :    aluno?.fkAluno || 'xxxx',
+                      descricao:'aluno vinculado no teams a turma: '+ turma?.turmaNome,
+                      corrigido:true
+
+                    })
+
+                    console.log(`Registrando relação entre turma ${turma.idTurma} e aluno ${aluno.fkAluno}.`);
+                    await TurmaAluno.create({
+                      id: uuid(),
+                      fkTurma: turma.idTurma,
+                      fkAluno: aluno.fkAluno,
+                      criadoNoTeams: true
+                    });
+                  }
+
+                  emailsProcessados.add(aluno.email);
+                } else {
+                  console.log(`Turma ou usuário não encontrado para ${aluno.email}`);
+                }
+              }
+            }
+          } else {
+            console.log(`Turma não encontrada para a matrícula ${matricula.fkAluno}`);
+          }
+        }
+      } else {
+        console.log('Nenhum aluno disponível para vinculação.');
+      }
+    } catch (err) {
+      console.error('Erro ao migrar os dados:', err);
+    }
+  }
+
+  delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
 
 
-  // async vincularAllEmailInstitucional(req: any, res: Response, next: NextFunction): Promise<any> {
-  //   try {
-  //     const { idTurma, VincularTodosEmails } = req.body;
 
-  //     // Verifica se idTurma e VincularTodosEmails são válidos
-  //     if (!idTurma || !Array.isArray(VincularTodosEmails) || VincularTodosEmails.length === 0) {
-  //       return res.status(400).json({ message: "ID da Turma ou lista de emails inválida." });
-  //     }
+  async criarEmailService() {
+    try {
 
-  //     const turmaAtual = await Turma.findOne({
-  //       where: { id: idTurma }
-  //     });
+      const alunosSemEmailSenac = await Aluno.findAll({
+        where: {
+          emailCriado: false,
+          emailCadastroESenac: false
+        }
+      });
 
-  //     if (!turmaAtual) {
-  //       return res.status(404).json({ message: "Turma não encontrada." });
-  //     }
+      if (alunosSemEmailSenac.length > 0) {
+        for (const aluno of alunosSemEmailSenac) {
 
-  //     const idTeamsTurma = turmaAtual?.idTurmaTeams;
+          const email = aluno.email;
+          console.log('usuario ' + email)
 
-  //     if (!idTeamsTurma) {
-  //       return res.status(404).json({ message: "ID da turma no Teams não encontrado." });
-  //     }
 
-  //     const resultados = [];
+          const userExiste = await obterUsuarios(aluno.email)
+          console.log('usuario' + userExiste)
 
-  //     // Itera sobre a lista de emails para vincular os alunos à turma
-  //     for (const email of VincularTodosEmails) {
-  //       if (email) {
-  //         const userId = await obterUsuarios(email);
+          if (userExiste.length > 0 && userExiste[0]) {
+            console.log('usuario Existe')
+            await Aluno.update(
+              {
+                emailCriado: true,
+                idEmailTeams: userExiste?.id || 'id nao localizado'
 
-  //         if (!userId) {
-  //           console.error(`Usuário com email ${email} não encontrado no sistema.`);
-  //           resultados.push({ email, status: "Usuário não encontrado" });
-  //           continue;
-  //         }
+              },
+              { where: { id: aluno.id } }
+            );
 
-  //         try {
-  //           // Adiciona o aluno à turma no Teams
-  //           await adicionarMembroEquipe(idTeamsTurma, userId);
+          } else {
+            await delay(10000);
 
-  //           // Atualiza o status do aluno como vinculado
-  //           await Aluno.update(
-  //             { alunoVinculado: true },
-  //             { where: { email } }
-  //           );
+            const usuarioCriado = await criarEmailInstitucional({
+              displayName: aluno.nome,
+              mailNickname: email.split('@')[0],
+              userPrincipalName: aluno.email,
+              password: 'SENAC@2024'
+            });
 
-  //           resultados.push({ email, status: "Vinculado com sucesso" });
-  //         } catch (error) {
-  //           console.error(`Erro ao vincular o email ${email}:`, error);
-  //           resultados.push({ email, status: "Erro ao vincular aluno" });
-  //         }
-  //       }
-  //     }
+            if (usuarioCriado) {
+              await Aluno.update(
+                {
+                  emailCriado: true,
+                  idEmailTeams: usuarioCriado.id
 
-  //     // Retorna a lista de resultados para o frontend
-  //     console.log(resultados); // Feedback no console do servidor
-  //     res.status(200).json({ message: "Processo de vinculação concluído", resultados });
+                },
+                { where: { id: aluno.id } }
+              );
 
-  //   } catch (err) {
-  //     console.log(err);
-  //     res.status(500).json({ message: "Erro no servidor", error: err.message });
-  //   }
-  // }
+              await Erro1.create({
+                id: uuid(),
+                aluno :    aluno?.fkAluno ,
+                descricao:'email institucional criado:'+ aluno.email,
+                corrigido:true
+
+    
+              })
+  
+
+              const txEmail = `
+                <b>Olá ${aluno.nome}.</b><br>
+                <b>Seu email de aluno Senac PE foi criado com sucesso</b><br>
+                Email: <strong>${email}</strong><br>
+                Senha: <strong>${'SENAC@2024'}</strong><br>
+                <br/>
+                <a href="https://go.microsoft.com/fwlink/?linkid=2185828">Entrar</a>
+                <p>
+              `;
+
+              // Enviar email
+              // emailUtils.enviar('marconunes@pe.senac.br', txEmail);
+            }else{
+              await Erro1.create({
+                id: uuid(),
+                aluno :    aluno?.fkAluno || 'xxxx',
+                descricao:'erro ao criar email do aluno: ' + aluno?.nome ,
+                corrigido: false
+
+              
+    
+              })
+  
+            }
+
+          }
+
+
+        }
+      }
+
+
+
+      console.log('alunos sem email institucional' + JSON.stringify(alunosSemEmailSenac))
+
+    } catch (err) {
+      
+      console.error('Erro ao migrar os dados:', err);
+    }
+  }
+
+  async migracaoService() {
+    try {
+      const turmaJaComTemas = await Turma.findAll({
+        where: {
+          idTurmaTeams: {
+            [Op.not]: null
+          }
+        }
+      });
+
+      // Extrair os IDs das turmas
+      const idsTurmasComTemas = turmaJaComTemas.map(turma => turma.idTurma);
+
+      // Consulta para trazer os alunos das turmas que têm temas
+
+      //apos o tewste filtrar os matriculados
+      const [alunosSig] = await sequelize.query(`
+        SELECT m.*, a.*
+        FROM [provisionadorsigteams].[dbo].[Matricula] m
+        JOIN [provisionadorsigteams].[dbo].[Aluno] a ON m.fkAluno = a.id
+        WHERE m.fkTurma IN (:idsTurmas)
+      `, {
+        replacements: { idsTurmas: idsTurmasComTemas },
+      });
+
+
+
+      for (const aluno of alunosSig) {
+        // Verifica se já existe um aluno com o CPF
+        // const existingAluno = await Aluno.findOne({
+        //    where: { cpf: aluno.cpf,
+
+        //     } });
+
+
+        const existingAluno = await TurmaAluno.findOne({
+
+          where: {
+            fkTurma: aluno.fkTurma,
+            fkAluno: aluno.fkAluno
+
+          }
+
+        })
+
+
+        if (!existingAluno) {
+          // Se não existir, cria um novo registro
+
+          if (aluno.emailPessoal && aluno.emailPessoal.includes('edu.senac')) {
+            await Aluno.create({
+              id: uuid(),
+              fkAluno: aluno.fkAluno || 'xxxx',
+              nome: aluno.nome,
+              cpf: aluno.cpf,
+              email: aluno.emailPessoal,
+              emailCadastro: aluno.emailPessoal || 'default@example.com',
+              ativo: true,
+              emailCadastroESenac: true,
+              alunoVinculado: false,
+              emailCriado: true,
+              // Adicione outros campos conforme a estrutura da sua tabela
+            });
+
+            await Erro1.create({
+              id: uuid(),
+              aluno :   aluno?.fkAluno || 'xxxx',
+              descricao:'Aluno criado na base:' + aluno.nome,
+              corrigido: true
+
+  
+            })
+
+            await TurmaAluno.create({
+              id: uuid(),
+              fkTurma: aluno.fkTurma || 'não encontrado',
+              fkAluno: aluno.fkAluno || 'nao encontrado',
+              criadoNoTeams: false
+            })
+
+
+          } else {
+
+            await Aluno.create({
+              id: uuid(),
+              nome: aluno.nome,
+              fkAluno: aluno.fkAluno || 'xxxx',
+              cpf: aluno.cpf,
+              email: aluno.emailSenac,
+              emailCadastro: aluno.emailPessoal || 'default@example.com',
+              ativo: true,
+              emailCadastroESenac: false,
+              alunoVinculado: false,
+              emailCriado: false,
+              // Adicione outros campos conforme a estrutura da sua tabela
+            });
+            await Erro1.create({
+              id: uuid(),
+              aluno :   aluno?.fkAluno || 'xxxx',
+              descricao:'Aluno criado na base:' +aluno.nome ,
+              corrigido:true
+
+            })
+
+
+            await TurmaAluno.create({
+              id: uuid(),
+              fkTurma: aluno.fkTurma || 'não encontrado',
+              fkAluno: aluno.fkAluno || 'nao encontrado',
+              criadoNoTeams: false
+            })
+          }
+        } else {
+          console.log(`Aluno com CPF ${aluno.cpf} já cadastrado.`);
+          // Aqui você pode optar por atualizar o aluno existente ou ignorar
+        }
+      }
+
+      // console.error('alunossss:', alunosSig);
+
+
+    } catch (err) {
+      console.error('Erro ao migrar os dados:', err);
+    }
+  }
+
+
+
+
+  async alunoView(req: Request, res: Response, next: NextFunction): Promise<any> {
+    try {
+
+      const [registro] = await sequelize.query(`
+        SELECT * FROM [provisionadorsigteams].[dbo].[aluno]
+      `);
+
+
+
+      res
+        .status(200)
+        .json({ data: registro, message: "Vinculo Criado. " });
+    } catch (err) {
+      console.log(err);
+      res.status(401).json({ message: err.errors[0].message });
+    }
+  }
+
+
+
 
 
   async vincularAllEmailInstitucional(req: any, res: Response, next: NextFunction): Promise<any> {
     try {
       const { idTurma, VincularTodosEmails } = req.body;
-  
+
       if (!idTurma || !Array.isArray(VincularTodosEmails) || VincularTodosEmails.length === 0) {
         return res.status(400).json({ message: "ID da Turma ou lista de emails inválida." });
       }
-  
+
       const turmaAtual = await Turma.findOne({ where: { id: idTurma } });
-  
+
       if (!turmaAtual) {
         return res.status(404).json({ message: "Turma não encontrada." });
       }
-  
+
       const idTeamsTurma = turmaAtual?.idTurmaTeams;
-  
+
       if (!idTeamsTurma) {
         return res.status(404).json({ message: "ID da turma no Teams não encontrado." });
       }
-  
+
       const resultados = [];
       let alunosProcessados = 0;
       const totalAlunos = VincularTodosEmails.length;
-  
+
       // Configura para manter a conexão aberta e enviar dados em "streaming"
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Transfer-Encoding', 'chunked');
-  
+
       for (const email of VincularTodosEmails) {
         if (email) {
           const userId = await obterUsuarios(email);
-  
+
           if (!userId) {
             resultados.push({ email, status: "Usuário não encontrado" });
             continue;
           }
-  
+
           try {
-            await adicionarMembroEquipe(idTeamsTurma, userId);
-            await Aluno.update({ alunoVinculado: true }, { where: { email } });
-            resultados.push({ email, status: "Vinculado com sucesso" });
+
+            if (idTeamsTurma && userId) {
+
+              await adicionarMembroEquipe(idTeamsTurma, userId);
+              await Aluno.update({ alunoVinculado: true }, { where: { email } });
+              resultados.push({ email, status: "Vinculado com sucesso" });
+            }
           } catch (error) {
             resultados.push({ email, status: "Erro ao vincular aluno" });
           }
-  
+
           // Atualizar progresso
           alunosProcessados++;
           const progresso = Math.floor((alunosProcessados / totalAlunos) * 100);
-  
+
           // Enviar progresso parcial ao cliente
           res.write(`${JSON.stringify({ status: 'progress', progress: progresso })}\n`);
         }
       }
-  
+
       // Finalizar resposta
       res.write(`${JSON.stringify({ status: 'done', message: 'Processo concluído', resultados })}\n`);
       res.end();
-  
+
     } catch (err) {
       res.status(500).json({ message: 'Erro no servidor', error: err.message });
     }
   }
-  
-
 
 
   async create(req: any, res: Response, next: NextFunction): Promise<any> {
@@ -440,6 +981,8 @@ class AlunoController implements IController {
           return res.status(404).json({ message: 'Aluno não encontrado.' });
         }
 
+
+
         const email = aluno.email;
         const mailNickname = email.split('@')[0];
         const senhaGerada = gerarSenha();
@@ -476,53 +1019,54 @@ class AlunoController implements IController {
 
       }
 
-     
+
 
       res.status(200).json({ message: "Criado com sucesso" });
     } catch (err) {
       console.error(err);
       res.status(401).json({ message: err.message });
+      res.status(500)._final
     }
   }
 
- 
+
   async createAllEmailInstitucional(req: any, res: Response, next: NextFunction): Promise<any> {
     try {
       const { CriarTodosEmails } = req.body;
-  
+
       if (!CriarTodosEmails || CriarTodosEmails.length === 0) {
         return res.status(400).json({ message: "Nenhum ID fornecido." });
       }
-  
+
       const totalAlunos = CriarTodosEmails.length;
       let alunosProcessados = 0;
       const resultados = [];
-  
+
       // Configura para manter a conexão aberta e enviar dados em "streaming"
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Transfer-Encoding', 'chunked');
-  
+
       for (const alunoId of CriarTodosEmails) {
         if (alunoId) {
           try {
             const aluno = await Aluno.findOne({ where: { id: alunoId } });
-  
+
             if (!aluno) {
               resultados.push({ alunoId, status: 'Aluno não encontrado' });
               continue;
             }
-  
+
             const email = aluno.email;
             const mailNickname = email.split('@')[0];
             const senhaGerada = gerarSenha();
-  
+
             const usuarioCriado = await criarEmailInstitucional({
               displayName: aluno.nome,
               mailNickname,
               userPrincipalName: aluno.email,
               password: senhaGerada
             });
-  
+
             if (usuarioCriado) {
 
 
@@ -534,9 +1078,9 @@ class AlunoController implements IController {
               <br/>
       <a href="https://go.microsoft.com/fwlink/?linkid=2185828">entrar</a><p>
             `;
-  
-            // emailUtils.enviar(aluno.emailCadastro, txEmail);
-            emailUtils.enviar('marconunes@pe.senac.br', txEmail);
+
+              // emailUtils.enviar(aluno.emailCadastro, txEmail);
+              emailUtils.enviar('marconunes@pe.senac.br', txEmail);
 
               await Aluno.update({ emailCriado: true }, { where: { id: aluno.id } });
               resultados.push({ alunoId, status: 'Email criado com sucesso' });
@@ -546,25 +1090,25 @@ class AlunoController implements IController {
           } catch (error) {
             resultados.push({ alunoId, status: 'Erro no processamento' });
           }
-  
+
           // Atualizar progresso
           alunosProcessados++;
           const progresso = Math.floor((alunosProcessados / totalAlunos) * 100);
-  
+
           // Enviar progresso parcial ao cliente
           res.write(`${JSON.stringify({ status: 'progress', progress: progresso })}\n`);
         }
       }
-  
+
       // Finalizar resposta
       res.write(`${JSON.stringify({ status: 'done', message: 'Processo concluído', resultados })}\n`);
       res.end();
-  
+
     } catch (err) {
       res.status(500).json({ message: 'Erro no servidor', error: err.message });
     }
   }
-  
+
 
   async find(req: Request, res: Response, next: NextFunction): Promise<any> {
     try {
@@ -582,15 +1126,15 @@ class AlunoController implements IController {
 
       // if (config?.baseProjeto) {
 
-        //         registro = await Usuario.sequelize?.query(` select * from alunosMigrados
-        // where AlunoCPF =  ?
-        //       `,
-        //             {
-        //               replacements: [cpf]
-        //             }
-        //           )
+      //         registro = await Usuario.sequelize?.query(` select * from alunosMigrados
+      // where AlunoCPF =  ?
+      //       `,
+      //             {
+      //               replacements: [cpf]
+      //             }
+      //           )
 
-        registro = await Aluno.sequelize?.query(`SELECT Top 1
+      registro = await Aluno.sequelize?.query(`SELECT Top 1
          A.AlunoId,
                   A.AlunoNome,
                   A.AlunoCPF,
@@ -616,12 +1160,12 @@ class AlunoController implements IController {
                   (T.TurmaSituacao = 'Liberada para Matrícula' OR T.TurmaSituacao = 'Em Processo')
     and A.AlunoCPF = ?
     `,
-          {
-            replacements: [cpf]
-          }
-        )
+        {
+          replacements: [cpf]
+        }
+      )
 
-     
+
 
       // }
 
@@ -645,8 +1189,50 @@ class AlunoController implements IController {
     throw new Error("Method not implemented.");
   }
 
-  async search(req: Request, res: Response, next: NextFunction): Promise<any> {
-    throw new Error("Method not implemented.");
+  async search(req: any, res: Response, next: NextFunction): Promise<any> {
+    try {
+      const { pesquisa } = req.query
+      console.log(pesquisa)
+
+
+      const registros = await Turma.findAll({
+        where: {
+          [Op.or]: [
+            { turmaNome: { [Op.like]: `%${pesquisa}%` } },
+            { codigoFormatado: { [Op.like]: `%${pesquisa}%` } },
+            { idTurma: { [Op.like]: `%${pesquisa}%` } },
+          ]
+        },
+        // include: [
+        //     {
+        //         model: Unidade,  // Inclui a tabela de Unidade
+        //         as: 'Unidade',  // Alias (garante que '$Unidade.nome$' funcione)
+        //         include: [
+        //             {
+        //                 model: Area,  // Inclui a tabela de Área relacionada à Unidade
+        //                 as: 'Area'  // Alias (garante que '$Unidade.Area.nome$' funcione)
+        //             }
+        //         ]
+        //     }
+        // ]
+      });
+
+
+
+
+      console.log("______________" + JSON.stringify(registros))
+
+      res.status(200).json({ data: registros })
+    } catch (err) {
+      console.log(err)
+      if (typeof err.errors !== 'undefined') {
+        res.status(401).json({ message: err.errors[0].message })
+      } else if (typeof err.message !== 'undefined') {
+        res.status(401).json({ message: err.message })
+      } else {
+        res.status(401).json({ message: 'Aconteceu um erro no processamento da requisição, por favor tente novamente.' })
+      }
+    }
   }
 }
 

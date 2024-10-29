@@ -49,7 +49,7 @@ import Equipe from "./pages/equipe";
 import ValidarUsuarioForm from "./pages/validar-usuario-form";
 // import Turmas from "./pages/turmas";
 import Alunos from "./pages/alunos";
-import Configuracao from "./pages/configuracao";
+// import Configuracao from "./pages/configuracao";
 
 const getCookie = require("./utils/getCookie")
 
@@ -545,11 +545,11 @@ const Masterpage = (props) => {
             render={(props) => <Alunos {...props} logged={logged} />}
           />
 
-<Route
+{/* <Route
             exact
             path="/config"
             render={(props) => <Configuracao {...props} logged={logged} />}
-          />
+          /> */}
 
 
 

@@ -14,17 +14,23 @@ module.exports = {
      *   isBetaMember: false
      * }], {});
     */
-    await queryInterface.bulkInsert('unidade', [
+
+    // const unidades = await queryInterface.sequelize.query('select * from unidade where nome = \'Gerência de Tecnologia da Informação\'')
+
+    await queryInterface.bulkInsert('erro', [
       {
       id: uuid(),
-      nome: 'Gerência de Tecnologia da Informação',
-      ativa: true,
+      turma: 'Sistemas - Desenvolvimento',
+      aluno: 'Sistemas - Desenvolvimento',
+     
+      profissional: 'Sistemas - Desenvolvimento',
+     
+      descricao: 'Sistemas - Desenvolvimento',
+     
+     
       createdAt: new Date(),
       updatedAt: new Date()
-    },
-   
-  
-  ], {})
+    }], {})
   },
 
   async down (queryInterface, Sequelize) {
@@ -34,6 +40,6 @@ module.exports = {
      * Example:
      * await queryInterface.bulkDelete('People', null, {});
      */
-    await queryInterface.bulkDelete('unidade', null, {})
+    await queryInterface.bulkDelete('erro', null, {})
   }
 }

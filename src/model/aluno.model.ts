@@ -16,6 +16,11 @@ Aluno.init({
     allowNull: false,
     primaryKey: true
   },
+
+  fkAluno: {
+    type: DataTypes.STRING,
+    allowNull:false
+  },
   nome: {
     type: DataTypes.STRING,
     allowNull:false
@@ -23,6 +28,10 @@ Aluno.init({
   cpf: {
     type: DataTypes.STRING,
     allowNull:false
+  },
+  idEmailTeams: {
+    type: DataTypes.STRING,
+    allowNull:true
   },
   email: {
     type: DataTypes.STRING,

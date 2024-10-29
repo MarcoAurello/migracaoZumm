@@ -15,6 +15,10 @@ module.exports = {
         allowNull: false,
         primaryKey: true
       },
+      idTurma: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
       turmaNome: {
         type: Sequelize.STRING,
         allowNull: true
@@ -27,6 +31,11 @@ module.exports = {
       codigoFormatado: {
         type: Sequelize.STRING,
         allowNull: false,
+
+      },
+      status: {
+        type: Sequelize.STRING,
+        allowNull: true,
 
       },
       criadoNoTeams: {

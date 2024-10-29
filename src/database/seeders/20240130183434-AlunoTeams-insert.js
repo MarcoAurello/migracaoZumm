@@ -27,13 +27,13 @@ module.exports = {
     const status = await queryInterface.sequelize.query('select * from status where descricao = \'Aberto\'')
 
     await queryInterface.bulkInsert('alunoTeams', [
-      {
-        id: uuid(),
-        fkStatus:status[0][0].id,
-        fkAluno: aluno[0][0].id,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
+      // {
+      //   id: uuid(),
+      //   fkStatus:status[0][0].id,
+      //   fkAluno: aluno[0][0].id,
+      //   createdAt: new Date(),
+      //   updatedAt: new Date()
+      // },
     
     ], {})
   },

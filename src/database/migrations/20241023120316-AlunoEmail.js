@@ -9,29 +9,19 @@ module.exports = {
      * Example:
      * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
      */
-    await queryInterface.createTable('aluno', {
+    await queryInterface.createTable('alunoEmail', {
       id: {
         type: Sequelize.UUID,
         allowNull: false,
         primaryKey: true
       },
-
-      fkAluno: {
+      nome: {
         type: Sequelize.STRING,
         allowNull: false
       },
-      nome: {
+      fkAluno: {
         type: Sequelize.STRING,
-        allowNull: true
-      },
-      cpf: {
-        type: Sequelize.STRING,
-        allowNull: true
-      },
-      
-      idEmailTeams: {
-        type: Sequelize.STRING,
-        allowNull: true
+        allowNull: false
       },
       email: {
         type: Sequelize.STRING,
@@ -57,7 +47,7 @@ module.exports = {
 
       emailCadastroESenac: {
         type: Sequelize.BOOLEAN,
-        allowNull: false,
+        allowNull: true,
       },
 
 
@@ -67,33 +57,6 @@ module.exports = {
       },
  
  
-
-      // fkUnidade: {
-      //   type: Sequelize.UUID,
-      //   allowNull: true
-      // },
-      // fkStatus: {
-      //   type: Sequelize.UUID,
-      //   allowNull: true
-      // },
-
-      // fkUsuario: {
-      //   type: Sequelize.UUID,
-      //   allowNull: true
-      // },
-
-      // fkUnidade: {
-      //   type: Sequelize.UUID,
-      //   allowNull: true
-      // },
-
-      // flagDemandado: {
-      //   type: Sequelize.BOOLEAN,
-      //   allowNull: false,
-      //   defaultValue: false,
-
-      // },
-
 
 
       createdAt: {
@@ -114,6 +77,6 @@ module.exports = {
      * Example:
      * await queryInterface.dropTable('users');
      */
-    await queryInterface.dropTable('aluno')
+    await queryInterface.dropTable('alunoEmail')
   }
 }

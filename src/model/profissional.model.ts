@@ -3,43 +3,39 @@ import bcrypt from 'bcrypt'
 import { uuid } from 'uuidv4'
 import connection from './connection'
 import jwt from 'jsonwebtoken'
-import Aluno from './aluno.model'
-import Status from './status.model'
-import Turma from './turma.model'
+import Teams from './teams.model'
+import AlunoEmail from './alunoEmail.model'
 // import Unidade from './unidade.model'
 
-class TurmaAluno extends Model {
+class Profissional extends Model {
 
 }
 
-TurmaAluno.init({
+Profissional.init({
   id: {
     type: DataTypes.UUID,
     allowNull: false,
     primaryKey: true
   },
 
-  fkTurma: {
-    type: DataTypes.STRING,
+  fkTeams: {
+    type: DataTypes.UUID,
     allowNull: true
   },
-  fkAluno: {
+  fkProfissional: {
     type: DataTypes.STRING,
     allowNull: true
-  },
-  criadoNoTeams: {
-    type: DataTypes.BOOLEAN,
-    allowNull: true,
-    
-  },
- 
+  }
 
 }, {
   sequelize: connection,
-  tableName: 'turmaAluno',
+  tableName: 'profissional',
 
 })
 
+Profissional.belongsTo(Teams, { foreignKey: 'fkTeams' })
+Teams.hasMany(Profissional, { foreignKey: 'fkTeams' })
 
 
-export default TurmaAluno
+
+export default Profissional

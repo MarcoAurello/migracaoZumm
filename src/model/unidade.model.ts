@@ -3,12 +3,7 @@ import { uuid } from 'uuidv4'
 import connection from './connection'
 
 class Unidade extends Model {
-  public id!: string
-  public nome!: string
-  public descricao!: string
-  public ativa!: boolean
-  public createdAt!: Date
-  public updatedAt!: Date
+  
 }
 
 Unidade.init({

@@ -8,11 +8,11 @@ import Status from './status.model'
 import Turma from './turma.model'
 // import Unidade from './unidade.model'
 
-class TurmaAluno extends Model {
+class TurmaProfissional extends Model {
 
 }
 
-TurmaAluno.init({
+TurmaProfissional.init({
   id: {
     type: DataTypes.UUID,
     allowNull: false,
@@ -23,23 +23,18 @@ TurmaAluno.init({
     type: DataTypes.STRING,
     allowNull: true
   },
-  fkAluno: {
+  fkProfissional: {
     type: DataTypes.STRING,
     allowNull: true
   },
-  criadoNoTeams: {
-    type: DataTypes.BOOLEAN,
-    allowNull: true,
-    
-  },
- 
+
 
 }, {
   sequelize: connection,
-  tableName: 'turmaAluno',
+  tableName: 'turmaProfissional',
 
 })
 
 
 
-export default TurmaAluno
+export default TurmaProfissional

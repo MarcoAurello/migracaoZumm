@@ -15,6 +15,10 @@ Turma.init({
     allowNull: false,
     primaryKey: true
   },
+  idTurma: {
+    type: DataTypes.STRING,
+    allowNull:true
+  },
   turmaNome: {
     type: DataTypes.STRING,
     allowNull:false
@@ -33,6 +37,11 @@ Turma.init({
     allowNull: true
   },
   unidade: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+
+  status: {
     type: DataTypes.TEXT,
     allowNull: true
   },
@@ -73,6 +82,9 @@ Turma.init({
 
 Turma.belongsTo(Tutor, { foreignKey: 'fkTutor' })
 Tutor.hasMany(Turma, { foreignKey: 'fkTutor' })
+
+Turma.belongsTo(Unidade, { foreignKey: 'fkUnidade' })
+Unidade.hasMany(Turma, { foreignKey: 'fkunidade' })
 
 
 

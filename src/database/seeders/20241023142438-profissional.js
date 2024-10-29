@@ -23,15 +23,15 @@ module.exports = {
     // const perfilsGerente = await queryInterface.sequelize.query('select * from perfil where nome = \'Gerente\'')
     // const perfilGerenteRows = perfilsGerente[0]
 
-    const aluno = await queryInterface.sequelize.query('select * from aluno where nome = \'joão\'')
-    const turma = await queryInterface.sequelize.query('select * from turma where turmaNome = \'Ingles22\'')
+    const turma = await queryInterface.sequelize.query('select * from teams where fkTurma = \'xx123\'')
 
-    await queryInterface.bulkInsert('turmaAluno', [
+    await queryInterface.bulkInsert('profissional', [
       // {
       //   id: uuid(),
-      //   fkTurma:turma[0][0].id,
-      //   fkAluno: aluno[0][0].id,
-      //   criadoNoTeams:false,
+       
+      //   fkTeams:turma[0][0].id,
+      //   fkProfissional: 'aluno[0][0].id',
+      
       //   createdAt: new Date(),
       //   updatedAt: new Date()
       // },
@@ -46,6 +46,6 @@ module.exports = {
      * Example:
      * await queryInterface.bulkDelete('People', null, {});
      */
-    await queryInterface.bulkDelete('turmaAluno', null, {})
+    await queryInterface.bulkDelete('profissional', null, {})
   }
 }
