@@ -38,24 +38,37 @@ app.listen(PORT, () => {
     await iniciarMigracao();
   });
 
-//   cron.schedule('*/1 * * * *', async () => {
+//   cron.schedule('*/10 * * * *', async () => {
 //     console.log('Executando a tarefa agendada a cada 10 minutos');
-//     await iniciarMigracaoDia();
+//     await executarServicos();
 // });
 
 async function executarServicos() {
-  try {
-    await Turma.migracaoService();
-    await Turma.verificarProfissionalService();
-    await Aluno.migracaoService();
-    await Aluno.criarEmailService();
-    await Aluno.vincularAlunoService();
-  } catch (error) {
-    console.error('Erro ao executar serviços:', error);
+  while (true) { // Loop infinito
+    try {
+      console.log("Iniciando execução dos serviços...");
+
+      await Turma.migracaoService();
+      await Turma.verificarProfissionalService();
+      await Aluno.migracaoService();
+      await Aluno.criarEmailService();
+      await Aluno.vincularAlunoService();
+
+      console.log("Execução dos serviços concluída. Aguardando 2 minutos antes de reiniciar...");
+
+      // Delay de 2 minutos (120.000 ms)
+      await new Promise(resolve => setTimeout(resolve, 120000));
+
+    } catch (error) {
+      console.error('Erro ao executar serviços:', error);
+
+      // Em caso de erro, ainda aguardamos 2 minutos antes de tentar novamente
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
   }
 }
 
-// Chame a função
+
 executarServicos();
 
 

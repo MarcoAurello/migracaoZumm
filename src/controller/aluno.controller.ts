@@ -73,11 +73,13 @@ async function obterUsuarios(variavelEmail) {
   }
 }
 
+
+
 // async function criarEmailInstitucional({ displayName, mailNickname, userPrincipalName, password }) {
 //   const token = await obterToken();
 //   const endpoint = 'https://graph.microsoft.com/v1.0/users';
 
-//   console.log('senha:' + password)
+//   console.log('senha:' + password);
 
 //   const body = {
 //     accountEnabled: true,
@@ -99,14 +101,18 @@ async function obterUsuarios(variavelEmail) {
 //         'Content-Type': 'application/json'
 //       }
 //     });
+
 //     console.log('Usuário criado com sucesso:', response.data);
-//     console.log('ccccccccccccccccccc' + JSON.stringify(response.data.id))
+//     console.log('ID do usuário criado:', response.data.id);
 
-//     await darAutorizacao(response.data.id)
-//     await assignLicenseToUser(response.data.id)
+//     await darAutorizacao(response.data.id);
+//     await assignLicenseToUser(response.data.id);
 
-//     // atribuirLicenca(response.data.id, '31d57bc7-3a05-4867-ab53-97a17835a411')
-//     return response.data;
+//     // Retorna o ID do usuário e o log de sucesso
+//     return {
+//       successMessage: 'Usuário criado com sucesso',
+//       id: response.data.id
+//     };
 //   } catch (error) {
 //     console.error('Erro ao criar usuário:', error.response ? error.response.data : error.message);
 //     throw error;
@@ -156,6 +162,7 @@ async function criarEmailInstitucional({ displayName, mailNickname, userPrincipa
     throw error;
   }
 }
+
 
 
 
@@ -358,36 +365,20 @@ async function adicionarMembroEquipe(teamId, userId) {
 class AlunoController implements IController {
   async all(req: Request, res: Response, next: NextFunction): Promise<any> {
     try {
-      // Parâmetros de paginação
-      const page = req.query.page ? parseInt(req.query.page as string) : 1; // Número da página
-      const pageSize = req.query.pageSize ? parseInt(req.query.pageSize as string) : 10; // Tamanho da página
-
-      // Cálculo do deslocamento
-      const offset = (page - 1) * pageSize;
-
-      // Consulta ao banco de dados com suporte à paginação
-      const registros = await aluno.findAll({
+     
+      const registros = await Aluno.findAll({
         where: {
-          ativo: true,
+            ativo: true,
         },
-        // include: [{
-        //   model: TurmaAluno, as: 'TurmaAluno', include: [Turma]
-        // }],
-        include: [
-          {
-            model: TurmaAluno,
-            include: [Turma]
-          }
-        ],
-        limit: pageSize, // Limite de registros por página
-        offset: offset, // Deslocamento
-      });
+        attributes: ['fkAluno', 'nome', 'emailCriado', 'alunoVinculado', 'email']
+    });
+    
       console.log("uiuiuiu" + JSON.stringify(registros))
 
       res.status(200).json({
         data: registros,
-        currentPage: page, // Página atual
-        pageSize: pageSize, // Tamanho da página
+        // currentPage: page, // Página atual
+        // pageSize: pageSize, // Tamanho da página
       });
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -515,6 +506,92 @@ class AlunoController implements IController {
   //   }
   // }
 
+  // async vincularAlunoService() {
+  //   try {
+  //     const alunoscomEmailSenac = await Aluno.findAll({
+  //       where: {
+  //         emailCriado: true,
+  //         alunoVinculado: false,
+  //       }
+  //     });
+
+  //     if (alunoscomEmailSenac.length > 0) {
+  //       const fkAlunos = alunoscomEmailSenac.map(aluno => aluno.dataValues.fkAluno);
+        
+  //       const matriculas = await sequelize.query(`
+  //         SELECT m.*
+  //         FROM [provisionadorsigteams].[dbo].[Matricula] m
+  //         WHERE m.fkAluno IN (:fkAlunos) AND
+  //         m.matriculaUltimaSituacao = 'Em Processo'
+  //       `, {
+  //         replacements: { fkAlunos },
+  //         type: sequelize.QueryTypes.SELECT
+  //       });
+
+  //       console.log('Matrículas encontradas para vinculação:', matriculas);
+
+  //       const emailsProcessados = new Set();
+
+  //       for (const matricula of matriculas) {
+  //         const turma = await Turma.findOne({ where: { idTurma: matricula.fkTurma } });
+
+  //         if (turma) {
+  //           console.log(`Turma encontrada para matrícula ${matricula.fkAluno}: ${turma.idTurma}`);
+            
+  //           for (const aluno of alunoscomEmailSenac) {
+  //             if (aluno.email && aluno.email.includes('@edu.pe.senac') && !emailsProcessados.has(aluno.email)) {
+  //               const userId = await obterUsuarios(aluno.email);
+  //               console.log(`userId obtido para ${aluno.email}:`, userId);
+
+  //               if (turma.idTurmaTeams && userId.length && aluno?.alunoVinculado === false) {
+  //                 console.log(`Adicionando usuário ${userId} à equipe ${turma.idTurmaTeams}`);
+  //                 await delay(20000);
+
+  //                 const migrando = await adicionarMembroEquipe(turma.idTurmaTeams, userId);
+                  
+  //                 if (migrando ) {
+  //                   console.log(`Atualizando aluno ${aluno.id} como vinculado.`);
+  //                   await Aluno.update({ alunoVinculado: true }, { where: { id: aluno.id } });
+  //                   await Erro1.create({
+  //                     id: uuid(),
+  //                     aluno :    aluno?.fkAluno || 'xxxx',
+  //                     descricao:'aluno vinculado no teams a turma: '+ turma?.turmaNome,
+  //                     corrigido:true
+
+  //                   })
+
+  //                   console.log(`Registrando relação entre turma ${turma.idTurma} e aluno ${aluno.fkAluno}.`);
+  //                   await TurmaAluno.update(
+  //                     {
+  //                       criadoNoTeams: true,
+  //                     },
+  //                     {
+  //                       where: {
+  //                         fkTurma: turma.idTurma,
+  //                         fkAluno: aluno.fkAluno,
+  //                       }
+  //                     }
+  //                   );
+  //                 }
+
+  //                 emailsProcessados.add(aluno.email);
+  //               } else {
+  //                 console.log(`Turma ou usuário não encontrado para ${aluno.email}`);
+  //               }
+  //             }
+  //           }
+  //         } else {
+  //           console.log(`Turma não encontrada para a matrícula ${matricula.fkAluno}`);
+  //         }
+  //       }
+  //     } else {
+  //       console.log('Nenhum aluno disponível para vinculação.');
+  //     }
+  //   } catch (err) {
+  //     console.error('Erro ao migrar os dados:', err);
+  //   }
+  // }
+
   async vincularAlunoService() {
     try {
       const alunoscomEmailSenac = await Aluno.findAll({
@@ -527,16 +604,22 @@ class AlunoController implements IController {
       if (alunoscomEmailSenac.length > 0) {
         const fkAlunos = alunoscomEmailSenac.map(aluno => aluno.dataValues.fkAluno);
         
-        const matriculas = await sequelize.query(`
-          SELECT m.*
-          FROM [provisionadorsigteams].[dbo].[Matricula] m
-          WHERE m.fkAluno IN (:fkAlunos) AND
-          m.matriculaUltimaSituacao = 'Em Processo'
-        `, {
-          replacements: { fkAlunos },
-          type: sequelize.QueryTypes.SELECT
-        });
+        // const matriculas = await sequelize.query(`
+        //   SELECT m.*
+        //   FROM [provisionadorsigteams].[dbo].[Matricula] m
+        //   WHERE m.fkAluno IN (:fkAlunos) AND
+        //   m.matriculaUltimaSituacao = 'Em Processo'
+        // `, {
+        //   replacements: { fkAlunos },
+        //   type: sequelize.QueryTypes.SELECT
+        // });
 
+        const matriculas = await TurmaAluno.findAll({
+          where: {
+              criadoNoTeams: false
+          }
+      });
+      
         console.log('Matrículas encontradas para vinculação:', matriculas);
 
         const emailsProcessados = new Set();
@@ -548,17 +631,18 @@ class AlunoController implements IController {
             console.log(`Turma encontrada para matrícula ${matricula.fkAluno}: ${turma.idTurma}`);
             
             for (const aluno of alunoscomEmailSenac) {
-              if (aluno.email && aluno.email.includes('@edu.pe.senac') && !emailsProcessados.has(aluno.email)) {
+              if (aluno.email && aluno.email.includes('@edu.pe.senac') && !emailsProcessados.has(aluno.email) &&
+               aluno.fkAluno === matricula.fkAluno) {
                 const userId = await obterUsuarios(aluno.email);
                 console.log(`userId obtido para ${aluno.email}:`, userId);
 
-                if (turma.idTurmaTeams && userId.length) {
+                if (turma.idTurmaTeams && userId.length && aluno?.alunoVinculado === false) {
                   console.log(`Adicionando usuário ${userId} à equipe ${turma.idTurmaTeams}`);
                   await delay(20000);
 
                   const migrando = await adicionarMembroEquipe(turma.idTurmaTeams, userId);
                   
-                  if (migrando) {
+                  if (migrando ) {
                     console.log(`Atualizando aluno ${aluno.id} como vinculado.`);
                     await Aluno.update({ alunoVinculado: true }, { where: { id: aluno.id } });
                     await Erro1.create({
@@ -570,12 +654,17 @@ class AlunoController implements IController {
                     })
 
                     console.log(`Registrando relação entre turma ${turma.idTurma} e aluno ${aluno.fkAluno}.`);
-                    await TurmaAluno.create({
-                      id: uuid(),
-                      fkTurma: turma.idTurma,
-                      fkAluno: aluno.fkAluno,
-                      criadoNoTeams: true
-                    });
+                    await TurmaAluno.update(
+                      {
+                        criadoNoTeams: true,
+                      },
+                      {
+                        where: {
+                          fkTurma: turma.idTurma,
+                          fkAluno: aluno.fkAluno,
+                        }
+                      }
+                    );
                   }
 
                   emailsProcessados.add(aluno.email);
@@ -603,110 +692,470 @@ class AlunoController implements IController {
 
 
 
+  // async criarEmailService() {
+  //   try {
+
+  //     const alunosSemEmailSenac = await Aluno.findAll({
+  //       where: {
+  //         emailCriado: false,
+  //         emailCadastroESenac: false
+  //       }
+  //     });
+
+  //     if (alunosSemEmailSenac.length > 0) {
+  //       for (const aluno of alunosSemEmailSenac) {
+
+  //         const email = aluno.email;
+  //         console.log('usuario ' + email)
+
+
+  //         const userExiste = await obterUsuarios(aluno.email)
+  //         console.log('usuario' + userExiste)
+
+  //         if (userExiste.length > 0 && userExiste[0]) {
+  //           console.log('usuario Existe')
+  //           await Aluno.update(
+  //             {
+  //               emailCriado: true,
+  //               idEmailTeams: userExiste?.id || 'id nao localizado'
+
+  //             },
+  //             { where: { id: aluno.id } }
+  //           );
+
+  //         } else {
+  //           await delay(10000);
+
+  //           const usuarioCriado = await criarEmailInstitucional({
+  //             displayName: aluno.nome,
+  //             mailNickname: email.split('@')[0],
+  //             userPrincipalName: aluno.email,
+  //             password: 'SENAC@2024'
+  //           });
+
+  //           if (usuarioCriado) {
+  //             await Aluno.update(
+  //               {
+  //                 emailCriado: true,
+  //                 idEmailTeams: usuarioCriado.id
+
+  //               },
+  //               { where: { id: aluno.id } }
+  //             );
+
+  //             await Erro1.create({
+  //               id: uuid(),
+  //               aluno :    aluno?.fkAluno ,
+  //               descricao:'email institucional criado:'+ aluno.email,
+  //               corrigido:true
+
+    
+  //             })
+  
+
+  //             const txEmail = `
+  //               <b>Olá ${aluno.nome}.</b><br>
+  //               <b>Seu email de aluno Senac PE foi criado com sucesso</b><br>
+  //               Email: <strong>${email}</strong><br>
+  //               Senha: <strong>${'SENAC@2024'}</strong><br>
+  //               <br/>
+  //               <a href="https://go.microsoft.com/fwlink/?linkid=2185828">Entrar</a>
+  //               <p>
+  //             `;
+
+  //             // Enviar email
+  //             // emailUtils.enviar('marconunes@pe.senac.br', txEmail);
+  //           }else{
+  //             await Erro1.create({
+  //               id: uuid(),
+  //               aluno :    aluno?.fkAluno || 'xxxx',
+  //               descricao:'erro ao criar email do aluno: ' + aluno?.nome ,
+  //               corrigido: false
+
+              
+    
+  //             })
+  
+  //           }
+
+  //         }
+
+
+  //       }
+  //     }
+
+
+
+  //     console.log('alunos sem email institucional' + JSON.stringify(alunosSemEmailSenac))
+
+  //   } catch (err) {
+      
+  //     console.error('Erro ao migrar os dados:', err);
+  //   }
+  // }
+
+  // async  criarEmailService() {
+  //   try {
+  //     const alunosSemEmailSenac = await Aluno.findAll({
+  //       where: {
+  //         emailCriado: false,
+  //         emailCadastroESenac: false
+  //       }
+  //     });
+  
+  //     if (alunosSemEmailSenac.length > 0) {
+  //       for (const aluno of alunosSemEmailSenac) {
+  //         const email = aluno.email;
+  //         console.log('usuario ' + email);
+  
+  //         const userExiste = await obterUsuarios(aluno.email);
+  //         console.log('usuario' + userExiste);
+  
+  //         if (userExiste.length > 0 && userExiste[0]) {
+  //           console.log('usuario Existe');
+  
+  //           // Atualiza a flag emailCriado para true
+  //           await Aluno.update(
+  //             {
+  //               emailCriado: true,
+  //               idEmailTeams: userExiste[0]?.id || 'id não localizado' // Utilize o id do primeiro usuário encontrado
+  //             },
+  //             { where: { id: aluno.id } }
+  //           );
+  //         } else {
+  //           await delay(10000);
+
+  //           const testAluno = obterUsuarios(aluno.email)
+
+  //           if(testAluno && testAluno.length > 0){
+  //             console.log('ex')
+  //             await Aluno.update(
+  //               {
+  //                 emailCriado: true,
+  //                 idEmailTeams:testAluno
+  //               },
+  //               { where: { id: aluno.id } }
+  //             );
+             
+
+
+  //           }else{
+  //             console.log(' n ex' + JSON.stringify(testAluno))
+
+  //             const usuarioCriado = await criarEmailInstitucional({
+  //               displayName: aluno.nome,
+  //               mailNickname: email.split('@')[0],
+  //               userPrincipalName: aluno.email ,
+  //               password: 'SENAC@2024'
+  //             });
+    
+  //             if (usuarioCriado) {
+  //               await Aluno.update(
+  //                 {
+  //                   emailCriado: true,
+  //                   idEmailTeams: usuarioCriado.id
+  //                 },
+  //                 { where: { id: aluno.id } }
+  //               );
+    
+  //               await Erro1.create({
+  //                 id: uuid(),
+  //                 aluno: aluno?.fkAluno,
+  //                 descricao: 'email institucional criado: ' + aluno.email,
+  //                 corrigido: true
+  //               });
+    
+  //               const txEmail = `
+  //                 <b>Olá ${aluno.nome}.</b><br>
+  //                 <b>Seu email de aluno Senac PE foi criado com sucesso</b><br>
+  //                 Email: <strong>${email}</strong><br>
+  //                 Senha: <strong>${'SENAC@2024'}</strong><br>
+  //                 <br/>
+  //                 <a href="https://go.microsoft.com/fwlink/?linkid=2185828">Entrar</a>
+  //                 <p>
+  //               `;
+    
+  //               // Enviar email
+  //               emailUtils.enviar(aluno?.emailCadastro, txEmail);
+  //             } else {
+  //               await Erro1.create({
+  //                 id: uuid(),
+  //                 aluno: aluno?.fkAluno || 'xxxx',
+  //                 descricao: 'erro ao criar email do aluno: ' + aluno?.nome,
+  //                 corrigido: false
+  //               });
+  //             }
+  //           }
+              
+  
+  //         }
+  //       }
+  //     }
+  
+  //     console.log('alunos sem email institucional: ' + JSON.stringify(alunosSemEmailSenac));
+  
+  //   } catch (err) {
+  //     console.error('Erro ao migrar os dados:', err);
+  //   }
+  // }
+
+
+
   async criarEmailService() {
     try {
-
       const alunosSemEmailSenac = await Aluno.findAll({
         where: {
           emailCriado: false,
           emailCadastroESenac: false
         }
       });
-
+  
       if (alunosSemEmailSenac.length > 0) {
         for (const aluno of alunosSemEmailSenac) {
-
           const email = aluno.email;
-          console.log('usuario ' + email)
-
-
-          const userExiste = await obterUsuarios(aluno.email)
-          console.log('usuario' + userExiste)
-
+          console.log('usuario ' + email);
+  
+          const userExiste = await obterUsuarios(aluno.email);
+          console.log('usuario' + userExiste);
+  
           if (userExiste.length > 0 && userExiste[0]) {
-            console.log('usuario Existe')
+            console.log('usuario Existe');
+  
+            // Atualiza a flag emailCriado para true
             await Aluno.update(
               {
                 emailCriado: true,
-                idEmailTeams: userExiste?.id || 'id nao localizado'
-
+                idEmailTeams: userExiste[0]?.id || 'id não localizado' // Utilize o id do primeiro usuário encontrado
               },
               { where: { id: aluno.id } }
             );
-
           } else {
             await delay(10000);
-
-            const usuarioCriado = await criarEmailInstitucional({
-              displayName: aluno.nome,
-              mailNickname: email.split('@')[0],
-              userPrincipalName: aluno.email,
-              password: 'SENAC@2024'
-            });
-
-            if (usuarioCriado) {
+  
+            const testAluno = await obterUsuarios(aluno.email); // Adicione 'await' aqui
+  
+            if (testAluno && testAluno.length > 0) {
+              console.log('ex');
               await Aluno.update(
                 {
                   emailCriado: true,
-                  idEmailTeams: usuarioCriado.id
-
+                  idEmailTeams: testAluno
                 },
                 { where: { id: aluno.id } }
               );
-
-              await Erro1.create({
-                id: uuid(),
-                aluno :    aluno?.fkAluno ,
-                descricao:'email institucional criado:'+ aluno.email,
-                corrigido:true
-
-    
-              })
   
-
-              const txEmail = `
-                <b>Olá ${aluno.nome}.</b><br>
-                <b>Seu email de aluno Senac PE foi criado com sucesso</b><br>
-                Email: <strong>${email}</strong><br>
-                Senha: <strong>${'SENAC@2024'}</strong><br>
-                <br/>
-                <a href="https://go.microsoft.com/fwlink/?linkid=2185828">Entrar</a>
-                <p>
-              `;
-
-              // Enviar email
-              // emailUtils.enviar('marconunes@pe.senac.br', txEmail);
-            }else{
-              await Erro1.create({
-                id: uuid(),
-                aluno :    aluno?.fkAluno || 'xxxx',
-                descricao:'erro ao criar email do aluno: ' + aluno?.nome ,
-                corrigido: false
-
-              
-    
-              })
+            } else {
+              console.log(' n ex' + JSON.stringify(testAluno));
   
+              // Verificar se o userPrincipalName já existe
+              const userPrincipalName = aluno.email; // ou qualquer outra lógica que você esteja usando
+              const existingUser = await obterUsuarios(userPrincipalName);
+  
+              if (existingUser.length === 0) { // Se não houver usuário existente
+                try {
+                  const usuarioCriado = await criarEmailInstitucional({
+                    displayName: aluno.nome,
+                    mailNickname: email.split('@')[0],
+                    userPrincipalName: userPrincipalName,
+                    password: 'SENAC@2024'
+                  });
+  
+                  await Aluno.update(
+                    {
+                      emailCriado: true,
+                      idEmailTeams: usuarioCriado.id
+                    },
+                    { where: { id: aluno.id } }
+                  );
+  
+                  await Erro1.create({
+                    id: uuid(),
+                    aluno: aluno?.fkAluno,
+                    descricao: 'email institucional criado: ' + aluno.email,
+                    corrigido: true
+                  });
+  
+                  const txEmail = `
+                    <b>Olá ${aluno.nome}.</b><br>
+                    <b>Seu email de aluno Senac PE foi criado com sucesso</b><br>
+                    Email: <strong>${email}</strong><br>
+                    Senha: <strong>${'SENAC@2024'}</strong><br>
+                    <br/>
+                    <a href="https://go.microsoft.com/fwlink/?linkid=2185828">Entrar</a>
+                    <p>
+                  `;
+  
+                  // Enviar email
+                  // emailUtils.enviar(aluno?.emailCadastro, txEmail);
+  
+                } catch (error) {
+                  // Verifica se o erro é do tipo que você quer tratar
+                  if (error.response?.data?.error?.code === 'Request_BadRequest' &&
+                      error.response?.data?.error?.message.includes('Another object with the same value for property userPrincipalName already exists.')) {
+                    console.log(`Usuário já existe: ${aluno.email}`);
+                    await Aluno.update(
+                      {
+                        emailCriado: true,
+                        idEmailTeams: 'usuário já existente'
+                      },
+                      { where: { id: aluno.id } }
+                    );
+                  } else {
+                    // Trate outros erros aqui se necessário
+                    console.error('Erro ao criar email do aluno: ', error.response.data);
+                    await Erro1.create({
+                      id: uuid(),
+                      aluno: aluno?.fkAluno || 'xxxx',
+                      descricao: 'erro ao criar email do aluno: ' + aluno?.nome,
+                      corrigido: false
+                    });
+                  }
+                }
+              } else {
+                console.log(`O userPrincipalName ${userPrincipalName} já existe.`);
+                // Aqui você pode optar por atualizar a flag emailCriado ou tomar alguma outra ação
+                await Aluno.update(
+                  {
+                    emailCriado: true,
+                    idEmailTeams: existingUser[0]?.id // Atualiza com o ID do usuário existente
+                  },
+                  { where: { id: aluno.id } }
+                );
+              }
             }
-
           }
-
-
         }
       }
-
-
-
-      console.log('alunos sem email institucional' + JSON.stringify(alunosSemEmailSenac))
-
+  
+      console.log('alunos sem email institucional: ' + JSON.stringify(alunosSemEmailSenac));
+  
     } catch (err) {
-      
       console.error('Erro ao migrar os dados:', err);
     }
   }
+  
+  
+
+  // async migracaoService() {
+  //   try {
+  //     const turmaJaComTemas = await Turma.findAll({
+  //       where: {
+  //         idTurmaTeams: {
+  //           [Op.not]: null
+  //         }
+  //       }
+  //     });
+
+  //     // Extrair os IDs das turmas
+  //     const idsTurmasComTemas = turmaJaComTemas.map(turma => turma.idTurma);
+
+  //     // Consulta para trazer os alunos das turmas que têm temas
+
+  //     //apos o tewste filtrar os matriculados
+  //     const [alunosSig] = await sequelize.query(`
+  //       SELECT m.*, a.*
+  //       FROM [provisionadorsigteams].[dbo].[Matricula] m
+  //       JOIN [provisionadorsigteams].[dbo].[Aluno] a ON m.fkAluno = a.id
+  //       WHERE m.fkTurma IN (:idsTurmas)
+  //     `, {
+  //       replacements: { idsTurmas: idsTurmasComTemas },
+  //     });
+
+
+
+  //     for (const aluno of alunosSig) {
+  //       // Verifica se já existe um aluno com o CPF
+  //       // const existingAluno = await Aluno.findOne({
+  //       //    where: { cpf: aluno.cpf,
+
+  //       //     } });
+
+
+  //       const existingAluno = await TurmaAluno.findOne({
+
+  //         where: {
+  //           fkTurma: aluno.fkTurma,
+  //           fkAluno: aluno.fkAluno,
+          
+
+  //         }
+
+  //       })
+
+
+  //       if (!existingAluno) {
+  //         // Se não existir, cria um novo registro
+
+  //         if (aluno.emailPessoal && aluno.emailPessoal.includes('edu.senac')) {
+  //           await Aluno.create({
+  //             id: uuid(),
+  //             fkAluno: aluno.fkAluno || 'xxxx',
+  //             nome: aluno.nome,
+  //             cpf: aluno.cpf,
+  //             email: 'gtiTeste'+aluno.emailPessoal,
+  //             emailCadastro: aluno.emailPessoal || 'default@example.com',
+  //             ativo: true,
+  //             emailCadastroESenac: true,
+  //             alunoVinculado: false,
+  //             emailCriado: true,
+  //             // Adicione outros campos conforme a estrutura da sua tabela
+  //           });
+
+  //           await Erro1.create({
+  //             id: uuid(),
+  //             aluno :   aluno?.fkAluno || 'xxxx',
+  //             descricao:'Aluno criado na base:' + aluno.nome,
+  //             corrigido: true
+
+  
+  //           })
+
+        
+
+
+  //         } else {
+
+  //           await Aluno.create({
+  //             id: uuid(),
+  //             nome: aluno.nome,
+  //             fkAluno: aluno.fkAluno || 'xxxx',
+  //             cpf: aluno.cpf,
+  //             email: 'gtiTeste'+aluno.emailSenac,
+  //             emailCadastro: aluno.emailPessoal || 'default@example.com',
+  //             ativo: true,
+  //             emailCadastroESenac: false,
+  //             alunoVinculado: false,
+  //             emailCriado: false,
+  //             // Adicione outros campos conforme a estrutura da sua tabela
+  //           });
+  //           await Erro1.create({
+  //             id: uuid(),
+  //             aluno :   aluno?.fkAluno || 'xxxx',
+  //             descricao:'Aluno criado na base:' +aluno.nome ,
+  //             corrigido:true
+
+  //           })
+
+
+        
+  //         }
+  //       } else {
+  //         console.log(`Aluno com CPF ${aluno.cpf} já cadastrado.`);
+  //         // Aqui você pode optar por atualizar o aluno existente ou ignorar
+  //       }
+  //     }
+
+  //     // console.error('alunossss:', alunosSig);
+
+
+  //   } catch (err) {
+  //     console.error('Erro ao migrar os dados:', err);
+  //   }
+  // }
 
   async migracaoService() {
     try {
+      // Buscar turmas que já têm temas vinculados
       const turmaJaComTemas = await Turma.findAll({
         where: {
           idTurmaTeams: {
@@ -714,122 +1163,114 @@ class AlunoController implements IController {
           }
         }
       });
-
-      // Extrair os IDs das turmas
+  
+      console.log('Turmas já com temas:', JSON.stringify(turmaJaComTemas));
+  
       const idsTurmasComTemas = turmaJaComTemas.map(turma => turma.idTurma);
-
+      console.log('IDs das turmas com temas:', idsTurmasComTemas);
+  
       // Consulta para trazer os alunos das turmas que têm temas
-
-      //apos o tewste filtrar os matriculados
       const [alunosSig] = await sequelize.query(`
-        SELECT m.*, a.*
+            SELECT m.*, a.*
         FROM [provisionadorsigteams].[dbo].[Matricula] m
         JOIN [provisionadorsigteams].[dbo].[Aluno] a ON m.fkAluno = a.id
-        WHERE m.fkTurma IN (:idsTurmas)
-      `, {
+		where m.matriculaUltimasituacao = 'Em Processo' and  m.fkTurma IN (:idsTurmas)`, {
         replacements: { idsTurmas: idsTurmasComTemas },
       });
-
-
-
+  
+      console.log('Alunos recuperados:', JSON.stringify(alunosSig));
+  
       for (const aluno of alunosSig) {
-        // Verifica se já existe um aluno com o CPF
-        // const existingAluno = await Aluno.findOne({
-        //    where: { cpf: aluno.cpf,
-
-        //     } });
-
-
-        const existingAluno = await TurmaAluno.findOne({
-
+        console.log('Processando aluno:', JSON.stringify(aluno)); // Log do aluno sendo processado
+  
+        const existingAluno = await Aluno.findOne({
           where: {
-            fkTurma: aluno.fkTurma,
-            fkAluno: aluno.fkAluno
-
+            cpf: aluno?.cpf,
+       
+          }
+        });
+        const vinculo = await TurmaAluno.findOne({
+          where: {
+            
+            fkAluno: aluno?.fkAluno,
+            fkTurma :aluno?.fkTurma,
+       
           }
 
         })
-
-
-        if (!existingAluno) {
-          // Se não existir, cria um novo registro
-
+  
+        if (!existingAluno &&  !vinculo) {
+          console.log(`Aluno não encontrado, criando: ${aluno.nome}`); // Log para novo aluno
+  
           if (aluno.emailPessoal && aluno.emailPessoal.includes('edu.senac')) {
             await Aluno.create({
               id: uuid(),
               fkAluno: aluno.fkAluno || 'xxxx',
               nome: aluno.nome,
               cpf: aluno.cpf,
-              email: aluno.emailPessoal,
+              email: 'gtiTeste' + aluno.emailPessoal,
               emailCadastro: aluno.emailPessoal || 'default@example.com',
               ativo: true,
               emailCadastroESenac: true,
               alunoVinculado: false,
               emailCriado: true,
-              // Adicione outros campos conforme a estrutura da sua tabela
             });
-
-            await Erro1.create({
-              id: uuid(),
-              aluno :   aluno?.fkAluno || 'xxxx',
-              descricao:'Aluno criado na base:' + aluno.nome,
-              corrigido: true
-
-  
-            })
 
             await TurmaAluno.create({
               id: uuid(),
-              fkTurma: aluno.fkTurma || 'não encontrado',
-              fkAluno: aluno.fkAluno || 'nao encontrado',
+              fkAluno: aluno?.fkAluno,
+              fkTurma:aluno?.fkTurma,
               criadoNoTeams: false
             })
-
-
+  
+            console.log(`Aluno criado na base (edu.senac): ${aluno.nome}`);
+            
+            await Erro1.create({
+              id: uuid(),
+              aluno: aluno?.fkAluno || 'xxxx',
+              descricao: 'Aluno criado na base: ' + aluno.nome,
+              corrigido: true
+            });
           } else {
-
             await Aluno.create({
               id: uuid(),
               nome: aluno.nome,
               fkAluno: aluno.fkAluno || 'xxxx',
               cpf: aluno.cpf,
-              email: aluno.emailSenac,
+              email: 'gtiTeste' + aluno.emailSenac,
               emailCadastro: aluno.emailPessoal || 'default@example.com',
               ativo: true,
               emailCadastroESenac: false,
               alunoVinculado: false,
               emailCriado: false,
-              // Adicione outros campos conforme a estrutura da sua tabela
             });
-            await Erro1.create({
-              id: uuid(),
-              aluno :   aluno?.fkAluno || 'xxxx',
-              descricao:'Aluno criado na base:' +aluno.nome ,
-              corrigido:true
-
-            })
-
-
             await TurmaAluno.create({
               id: uuid(),
-              fkTurma: aluno.fkTurma || 'não encontrado',
-              fkAluno: aluno.fkAluno || 'nao encontrado',
+              fkAluno: aluno?.fkAluno,
+              fkTurma:aluno?.fkTurma,
               criadoNoTeams: false
             })
+  
+            console.log(`Aluno criado na base (sem edu.senac): ${aluno.nome}`);
+  
+            await Erro1.create({
+              id: uuid(),
+              aluno: aluno?.fkAluno || 'xxxx',
+              descricao: 'Aluno criado na base: ' + aluno.nome,
+              corrigido: true
+            });
           }
         } else {
-          console.log(`Aluno com CPF ${aluno.cpf} já cadastrado.`);
-          // Aqui você pode optar por atualizar o aluno existente ou ignorar
+          console.log(`Aluno com CPF ${aluno.cpf} já cadastrado.`); // Log se já existe
         }
       }
-
-      // console.error('alunossss:', alunosSig);
-
-
+  
     } catch (err) {
       console.error('Erro ao migrar os dados:', err);
     }
   }
+  
+  
 
 
 
@@ -1080,7 +1521,7 @@ class AlunoController implements IController {
             `;
 
               // emailUtils.enviar(aluno.emailCadastro, txEmail);
-              emailUtils.enviar('marconunes@pe.senac.br', txEmail);
+              emailUtils.enviar(aluno.emailCadastro, txEmail);
 
               await Aluno.update({ emailCriado: true }, { where: { id: aluno.id } });
               resultados.push({ alunoId, status: 'Email criado com sucesso' });
@@ -1192,15 +1633,15 @@ class AlunoController implements IController {
   async search(req: any, res: Response, next: NextFunction): Promise<any> {
     try {
       const { pesquisa } = req.query
-      console.log(pesquisa)
+      console.log('qqqqqqq'+pesquisa)
 
 
-      const registros = await Turma.findAll({
+      const registros = await Aluno.findAll({
         where: {
           [Op.or]: [
-            { turmaNome: { [Op.like]: `%${pesquisa}%` } },
-            { codigoFormatado: { [Op.like]: `%${pesquisa}%` } },
-            { idTurma: { [Op.like]: `%${pesquisa}%` } },
+            { nome: { [Op.like]: `%${pesquisa}%` } },
+            { cpf: { [Op.like]: `%${pesquisa}%` } },
+           
           ]
         },
         // include: [

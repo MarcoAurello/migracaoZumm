@@ -20,6 +20,10 @@ import routerTeams from './router/teams.router'
 import routerTeamsAluno from './router/teamsAluno.router'
 import routerProfissional from './router/profissional.router'
 import routerErro from './router/erro.router'
+import routerMembroManual from './router/membroManual.router'
+
+
+
 
 routerErro
 
@@ -70,6 +74,7 @@ class Server {
     this.application.use('/api/alunoEmail/', routerAlunoEmail)
     this.application.use('/api/teams/', routerTeams)
     this.application.use('/api/teamsAluno/', routerTeamsAluno)
+    this.application.use('/api/membroManual/', routerMembroManual)
     this.application.use('/api/erro/', routerErro)
     
     this.application.use('/api/profissional/', routerProfissional)

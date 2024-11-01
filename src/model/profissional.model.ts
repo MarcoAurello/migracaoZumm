@@ -25,7 +25,21 @@ Profissional.init({
   fkProfissional: {
     type: DataTypes.STRING,
     allowNull: true
-  }
+  },
+
+  nome: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  email: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  emailInstitucional: {
+    type: DataTypes.BOOLEAN,
+    allowNull: true
+  },
+
 
 }, {
   sequelize: connection,

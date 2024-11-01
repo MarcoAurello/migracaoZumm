@@ -1,7 +1,8 @@
-import { CircularProgress, FormControl, InputLabel, MenuItem, Select, SpeedDial } from "@mui/material";
+import { Alert, CircularProgress, FormControl, InputLabel, MenuItem, Select, SpeedDial } from "@mui/material";
 
 import EditIcon from '@mui/icons-material/Edit';
 import TaskAluno from '../components/task-aluno'
+import moment from 'moment';
 
 
 import React, { useEffect, useState } from 'react';
@@ -16,46 +17,93 @@ const getCookie = require('../utils/getCookie')
 
 const Turmas = (props) => {
   const [openLoadingDialog, setOpenLoadingDialog] = useState(false)
-  const [openMessageDialog, setOpenMessageDialog] = useState(false)
-  const [message, setMessage] = useState('')
-
-  const [titulo, setTitulo] = useState('');
-  const [descricao, setDescricao] = useState('');
-  const [caminho, setCaminho] = useState('');
 
 
-  const [chamado, setChamado] = useState(null);
 
-  const [fkUsuario, setFkUsuario] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [fkCham, setFkCham] = useState(null);
-  const [executor, setExecutor] = useState('');
-  const [obsDemandante, setObsDemandante] = useState('');
-  const [criticidadeChefe, setCriticidade] = useState(null)
+
+
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [pesquisa, setPesquisa] = useState('');
   const [open, setOpen] = useState(false);
   const [turmas, setTurmas] = useState([]);
   const [turmaSelecionada, setTurmaSelecionada] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [email, setEmail] = useState('')
+  const [isAdmin, setIsAdmin] = useState('');
+
+
+
+  const formatDate = (dateString) => {
+    return moment(dateString).format('DD/MM/YYYY');
+  };
+
+  const vincularEmail = (idTurma) => {
+    // alert(isAdmin)
+    // alert(idTurma)
+    // setOpenLoadingDialog(true)
+    const token = getCookie('_token_task_manager')
+    const params = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        idTurma,
+        email,
+        isAdmin
+
+      })
+    }
+    fetch(`${process.env.REACT_APP_DOMAIN_API}/api/turma/`, params)
+      .then(response => {
+        const { status } = response
+        response.json().then(data => {
+          // setOpenLoadingDialog(false)
+          if (status === 401) {
+            // setMessage(data.message)
+            // setOpenMessageDialog(true)
+          } else if (status === 200) {
+            alert(data.message)
+
+
+            // window.location.href = `${process.env.REACT_APP_DOMAIN}/cadastroInicial`;
+          }
+        })
+      })
+  }
+
+
 
   useEffect(() => {
 
     let timeoutId;
 
 
-    if (pesquisa.length > 3) {
+    if (pesquisa.length > 6) {
       timeoutId = setTimeout(() => {
         pesquisar();
       }, 10); // Executa a cada 5 segundos
     }
+
+
+    // if(turmas){
+    //   alert(JSON.stringify(turmas))
+    // }
+
+    // if (isAdmin) {
+    //   alert(isAdmin)
+    // }
+
   }, [pesquisa]);
 
-  const carregarRegistro = (currentPage, pageSize) => {
+  const carregarRegistro = () => {
     setOpenLoadingDialog(true);
     const token = getCookie('_token_task_manager');
 
-    fetch(`${process.env.REACT_APP_DOMAIN_API}/api/turma/?page=${currentPage}&pageSize=${pageSize}`, {
+    fetch(`${process.env.REACT_APP_DOMAIN_API}/api/turma/`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -112,7 +160,7 @@ const Turmas = (props) => {
 
   const handleCriarEquipe = async (turmaId) => {
     setIsLoading(true);
-    
+
     try {
       const response = await fetch(`${process.env.REACT_APP_DOMAIN_API}/api/turma/criarEquipe/${turmaId}`, {
         method: 'POST',
@@ -159,7 +207,7 @@ const Turmas = (props) => {
     alignItems: 'center',
     zIndex: 9999
   };
-  
+
   const spinnerStyle = {
     border: '8px solid rgba(0, 0, 0, 0.1)',
     borderLeftColor: '#ffffff',
@@ -173,23 +221,53 @@ const Turmas = (props) => {
 
     <div>
 
+      <div
 
-      <hr></hr>
-      <button style={{
-        padding: '8px 16px', margin: '0 5px',
-        backgroundColor: '#007bff', color: '#fff', border: 'none',
-        borderRadius: '4px', cursor: 'pointer',
-        transition: 'background-color 0.3s ease'
-      }} onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/home/`}>
-        home</button>
-      <button style={{
+        style={{
+          margin: '20px',
+          padding: '20px',
+          backgroundColor: '#f9f9fb',
+          borderRadius: '12px',
+          boxShadow: '0px 6px 20px rgba(0, 0, 0, 0.15)',
+          border: '1px solid #e0e3e7'
+        }}
+      >
+
+        <button style={{
+          padding: '8px 16px ',
+          marginRight: '10px',
+
+          backgroundColor: '#4a90e2',
+          alignSelf: 'self-start',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+        }} onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/home/`}>
+          Home</button>
+        {/* <button style={{
         padding: '8px 16px', margin: '0 5px',
         backgroundColor: '#007bff', color: '#fff', border: 'none',
         borderRadius: '4px', cursor: 'pointer',
         transition: 'background-color 0.3s ease'
       }} onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}>
         Alunos Migrados</button>
-      <hr></hr>
+      <hr></hr> */}
+        <p></p>
+
+        <TextField
+          fullWidth
+          id="filled-basic"
+          // variant="filled"
+          label="Informe o nome ou codigo da turma"
+          name="pesquisa"
+          value={pesquisa}
+
+          style={{ backgroundColor: "#FFFACD" }}
+          onChange={(e) => setPesquisa(e.target.value)}
+        />
+
+      </div>
 
 
 
@@ -198,95 +276,204 @@ const Turmas = (props) => {
 
 
 
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '20px' }}>
+
+      {/* <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '20px' }}>
         <button style={{ padding: '8px 16px', margin: '0 5px', backgroundColor: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', transition: 'background-color 0.3s ease' }} onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}>Anterior</button>
         <span>Página {currentPage}</span>
         <button style={{ padding: '8px 16px', margin: '0 5px', backgroundColor: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', transition: 'background-color 0.3s ease' }} onClick={() => setCurrentPage(prev => prev + 1)}>Próxima</button>
 
-      </div>
+      </div> */}
 
-      <TextField
-        fullWidth
-        id="filled-basic"
-        // variant="filled"
-        label="Informe o nome ou codigo da turma"
-        name="pesquisa"
-        value={pesquisa}
-
-        style={{ backgroundColor: "#FFFACD" }}
-        onChange={(e) => setPesquisa(e.target.value)}
-      />
 
       {turmaSelecionada.length > 0 ? (
-        <center>
-          <table
-            className="table table-striped"
-            style={{
-              border: '1px solid #ccc', // Adiciona uma borda de 5px sólida cinza
-              boxShadow: '2px 2px 5px rgba(0, 0, 0, 0.1)', // Adiciona sombreado
-              borderRadius: '10px', // Adiciona bordas arredondadas de 10px
-              width: '100%',
-              backgroundColor: '#080f00',
-
-            }}
-          >
-            <tbody>
-              <tr style={{ wordBreak: "break-all", fontSize: '20px', color: '#fff' }}>
-                <td colSpan="5"><b>Turmas</b></td>
-
-
-              </tr>
-              <tr style={{ color: '#fff' }}>
-                <td>turma</td>
-                <td>codigo</td>
-
-                <td></td>
-              </tr>
-
-              {turmaSelecionada.map((item, index) => (
-                <tr key={index} style={{ border: '10px', color: '#fff' }}>
-                  <td >{item.turmaNome ? item.turmaNome : ''}<br></br>
-
-
-                  </td>
-                  {item.codigoFormatado ? item.codigoFormatado : ''}
-                  <td >
-
-                  <div>
-      {isLoading && (
-        <div style={overlayStyle}>
-          <div style={spinnerStyle}></div>
-          <p style={{ color: 'white', fontSize: '1.5em', marginTop: '10px' }}>Carregando...</p>
-        </div>
-      )}
-      <button onClick={() => handleCriarEquipe('id-da-turma')}>
-        Criar equipe
-      </button>
-    </div>
-                  </td>
-                  <button style={{
-                    padding: '8px 16px', margin: '0 5px', backgroundColor: 'red', alignSelf: 'end',
-                    color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer'
+        <div>
+          {turmaSelecionada.map((item, index) => (
+            <div
+              key={index}
+              style={{
+                margin: '10px',
+                display: 'flex',
+                flexDirection: 'column',
+                color: '#333',
+                padding: '16px',
+                backgroundColor: '#fff',
+                borderRadius: '8px',
+                marginBottom: '8px',
+                boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+                border: '1px solid #E1E1E1',
+              }}
+            >
+              <div style={{ fontSize: 15, marginLeft: 8, marginRight: 8, position: 'relative' }}>
+                <b>Turma:</b> {item.turmaNome}
+              </div>
+              <div style={{ fontSize: 15, marginLeft: 8, marginRight: 8, position: 'relative' }}>
+                <b>Código:</b> {item.codigoFormatado}
+              </div>
+              <div style={{ fontSize: 15, marginLeft: 8, marginRight: 8, position: 'relative' }}>
+                <b>Unidade:</b> {item.unidade}
+              </div>
+              <div style={{ fontSize: 15, marginLeft: 8, marginRight: 8, position: 'relative' }}>
+                <b>Inicio:</b> {formatDate(item.dataInicio)}
+                <br></br>
+                <b>Termino:</b> {formatDate(item.dataTermino)}
+                <br></br>
+                <button
+                  style={{
+                    padding: '8px 16px',
+                    margin: '0 5px',
+                    backgroundColor: '#626fef',
+                    alignSelf: 'end',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
                   }}
-                    onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/alunos/${item.id}`}
-                  >Ver Alunos</button>
+                  onClick={() => (window.location.href = `${item.linkTurma}`)}
+                >
+                  Ver turma no Teams
+                </button>
 
-                  <td>
+                <button
+                  style={{
+                    padding: '8px 16px',
+                    margin: '0 5px',
+                    backgroundColor: '#4a90e2',
+                    alignSelf: 'end',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => (window.location.href = `${process.env.REACT_APP_DOMAIN}/alunos/${item.idTurma}`)}
+                >
+                  Ver Alunos
+                </button><p></p>
 
-                  </td>
-                  <td>
+                <div>
+                  <button
+                    style={{
+                      padding: '8px 16px',
+                      margin: '0 5px',
+                      backgroundColor: '#254edb',
+                      alignSelf: 'end',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => setShowModal(true)} // Exibe o modal ao clicar
+                  >
+                    Adicionar membro manualmente
+                  </button>
+
+                  {showModal && (
+                    <div
+                      style={{
+                        position: 'fixed',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        padding: '20px',
+                        // backgroundColor: '#FFCCCC',
+                        color: 'black',
+                        borderRadius: '8px',
+                        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+                        zIndex: 1000,
+                        width: '650px',
+                        textAlign: 'left',
+                      }}
+                    >
+                      <div style={{ textAlign: 'right' }}>
+                        <button
+                          onClick={() => setShowModal(false)} // Fecha o modal ao clicar
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            fontSize: '16px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            color: '#555',
+                          }}
+                        >
+                          &times;
+                        </button>
+                      </div>
+                      Informe email dominio <b> @edu.pe.senac.br ou @pe.senac.br:</b>
+
+                      <TextField
+                        margin="normal"
+                        required
+                        size="small"
+                        fullWidth
+                        id="email"
+                        label="Email"
+                        name="email"
+                        autoComplete="email"
+                        autoFocus
+                        onChange={e => setEmail(e.target.value)}
+                      />
+
+                      <div style={{ margin: '10px 0' }}>
+                        <label>
+                          <input
+                            type="radio"
+                            name="role"
+                            value="admin"
+                            checked={isAdmin}
+                            onChange={() => setIsAdmin(true)}
+                            style={{ marginRight: '5px' }}
+                          />
+                          Administrador
+                        </label>
+
+                        <label style={{ marginLeft: '15px' }}>
+                          <input
+                            type="radio"
+                            name="role"
+                            value="aluno"
+                            checked={!isAdmin}
+                            onChange={() => setIsAdmin(false)}
+                            style={{ marginRight: '5px' }}
+                          />
+                          Aluno
+                        </label>
+                      </div>
+
+
+                      {(email.includes('@edu.pe.senac.br') ||
+                        email.includes('@pe.senac.br')) && isAdmin != null
+                        ?
+                        <button
+                          style={{
+                            padding: '8px 16px',
+                            margin: '0 5px',
+                            backgroundColor: '#254edb',
+                            alignSelf: 'end',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                          }}
+                          onClick={() => vincularEmail(item.idTurmaTeams)} // Exibe o modal ao clicar
+                        >
+                          Adicionar email a turma {item.turmaNome}
+                        </button>
+                        : ''}
+
+                    </div>
+                  )}
+                </div>
+              </div>
 
 
 
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </center>
+            </div>
+          ))}
+        </div>
       ) : (
-        ""
-      )}
+        ''
+      )
+      }
 
 
 
@@ -298,207 +485,196 @@ const Turmas = (props) => {
 
       <p></p>
 
-      {turmas.length = 0 ?
-        <div>
-          {
-            turmas.map((item, index) =>
-
-
-              < div key={index}
+      {
+        turmas.length > 0 && turmaSelecionada.length === 0 ? (
+          <div>
+            {turmas.map((item, index) => (
+              <div
+                key={index}
                 style={{
-                  // paddingBlock:'10px',
-                  marginLeft: '10px',
-                  marginRight: '10px',
+                  margin: '10px',
                   display: 'flex',
                   flexDirection: 'column',
-                  minHeight: 100,
-                  color: '#424242',
-                  padding: 16,
-                  borderColor: 'black',
-                  background: '#e7e6e5',
-                  borderRadius: 5,
-                  marginBottom: '5px',
-                  boxShadow: '10px 20px 20px -18px #424242',
-
-                  // cursor: 'pointer'
-                }}>
-
-                {/* <b>Aluno:</b>{item.nome}<br></br> */}
+                  color: '#333',
+                  padding: '16px',
+                  backgroundColor: '#fff',
+                  borderRadius: '8px',
+                  marginBottom: '8px',
+                  boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+                  border: '1px solid #E1E1E1',
+                }}
+              >
                 <div style={{ fontSize: 15, marginLeft: 8, marginRight: 8, position: 'relative' }}>
                   <b>Turma:</b> {item.turmaNome}
                 </div>
                 <div style={{ fontSize: 15, marginLeft: 8, marginRight: 8, position: 'relative' }}>
-                  <b>Codigo:</b> {item.codigoFormatado}
+                  <b>Código:</b> {item.codigoFormatado}
+                </div>
+                <div style={{ fontSize: 15, marginLeft: 8, marginRight: 8, position: 'relative' }}>
+                  <b>Unidade:</b> {item.unidade}
+                </div>
+                <div style={{ fontSize: 15, marginLeft: 8, marginRight: 8, position: 'relative' }}>
+                  <b>Inicio:</b> {formatDate(item.dataInicio)}
+                  <br></br>
+                  <b>Termino:</b> {formatDate(item.dataTermino)}
+                  <br></br>
+                  <button
+                    style={{
+                      padding: '8px 16px',
+                      margin: '0 5px',
+                      backgroundColor: '#626fef',
+                      alignSelf: 'end',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => (window.location.href = `${item.linkTurma}`)}
+                  >
+                    Ver turma no Teams
+                  </button>
+
+                  <button
+                    style={{
+                      padding: '8px 16px',
+                      margin: '0 5px',
+                      backgroundColor: '#4a90e2',
+                      alignSelf: 'end',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => (window.location.href = `${process.env.REACT_APP_DOMAIN}/alunos/${item.idTurma}`)}
+                  >
+                    Ver Alunos
+                  </button><p></p>
+                  <div>
+                  <button
+                    style={{
+                      padding: '8px 16px',
+                      margin: '0 5px',
+                      backgroundColor: '#254edb',
+                      alignSelf: 'end',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => setShowModal(true)} // Exibe o modal ao clicar
+                  >
+                    Adicionar membro manualmente
+                  </button>
+
+                  {showModal && (
+                    <div
+                      style={{
+                        position: 'fixed',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        padding: '20px',
+                        // backgroundColor: '#FFCCCC',
+                        color: 'black',
+                        borderRadius: '8px',
+                        boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+                        zIndex: 1000,
+                        width: '650px',
+                        textAlign: 'left',
+                      }}
+                    >
+                      <div style={{ textAlign: 'right' }}>
+                        <button
+                          onClick={() => setShowModal(false)} // Fecha o modal ao clicar
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            fontSize: '16px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            color: '#555',
+                          }}
+                        >
+                          &times;
+                        </button>
+                      </div>
+                      Informe email dominio <b> @edu.pe.senac.br ou @pe.senac.br:</b>
+
+                      <TextField
+                        margin="normal"
+                        required
+                        size="small"
+                        fullWidth
+                        id="email"
+                        label="Email"
+                        name="email"
+                        autoComplete="email"
+                        autoFocus
+                        onChange={e => setEmail(e.target.value)}
+                      />
+
+                      <div style={{ margin: '10px 0' }}>
+                        <label>
+                          <input
+                            type="radio"
+                            name="role"
+                            value="admin"
+                            checked={isAdmin}
+                            onChange={() => setIsAdmin(true)}
+                            style={{ marginRight: '5px' }}
+                          />
+                          Administrador
+                        </label>
+
+                        <label style={{ marginLeft: '15px' }}>
+                          <input
+                            type="radio"
+                            name="role"
+                            value="aluno"
+                            checked={!isAdmin}
+                            onChange={() => setIsAdmin(false)}
+                            style={{ marginRight: '5px' }}
+                          />
+                          Aluno
+                        </label>
+                      </div>
+
+
+                      {(email.includes('@edu.pe.senac.br') ||
+                        email.includes('@pe.senac.br')) && isAdmin != null
+                        ?
+                        <button
+                          style={{
+                            padding: '8px 16px',
+                            margin: '0 5px',
+                            backgroundColor: '#254edb',
+                            alignSelf: 'end',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                          }}
+                          onClick={() => vincularEmail(item.idTurmaTeams)} // Exibe o modal ao clicar
+                        >
+                          Adicionar email a turma {item.turmaNome}
+                        </button>
+                        : ''}
+
+                    </div>
+                  )}
+                </div>
                 </div>
 
-
-                <div>
-      {isLoading && (
-        <div style={overlayStyle}>
-          <div style={spinnerStyle}></div>
-          <p style={{ color: 'white', fontSize: '1.5em', marginTop: '10px' }}>Carregando...</p>
-        </div>
-      )}
-      <button onClick={() => handleCriarEquipe('id-da-turma')}>
-        Criar equipe
-      </button>
-    </div>
-
-                <button style={{
-                  padding: '8px 16px', margin: '0 5px', backgroundColor: 'red', alignSelf: 'end',
-                  color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer'
-                }}
-                  onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/alunos/${item.id}`}
-                >Ver Alunos</button>
-
-                {/* <div style={{ fontSize: 12, marginLeft: 8, marginRight: 8, position: 'relative' }}>
-            <b>Aluno:</b> {item.TurmaAlunos.id } 
-          </div> */}
-
-
-                <div style={{ color: 'red' }}>{item.TurmaAlunos.id ? item.TurmaAlunos.fkTurma : ''}</div>
-
-
-
-
               </div>
-            )
-          }
-
-        </div> : ''
+            ))}
+          </div>
+        ) : (
+          ''
+        )
       }
 
 
-      {/* <SpeedDial variant="outlined" onClick={() => setOpen(true)}
-        ariaLabel="Nova Tarefa"
-        sx={{ position: 'fixed', bottom: 16, right: 16 }}
-        icon={<EditIcon />} /> */}
 
-      {/* <Dialog open={open} >
-        <DialogTitle>Abertura de Chamado</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-
-          </DialogContentText>
-
-
-
-          <FormControl fullWidth size="small">
-            <InputLabel id="demo-select-small">Titulo do Chamado</InputLabel>
-            <hr></hr>
-            <TextField
-
-              autoFocus
-              margin="dense"
-              id="tituloChamado"
-              // label="Titulo do chamado"
-              type="text"
-              name="tituloChamado"
-              fullWidth
-              variant="standard"
-              value={titulo}
-              onChange={e => setTitulo(e.target.value)}
-
-            />
-
-          </FormControl>
-
-          <p></p>
-
-
-          <FormControl fullWidth size="small">
-            <InputLabel id="demo-select-small">Descrição do Chamado</InputLabel>
-            <hr></hr>
-            <TextField
-              autoFocus
-              margin="dense"
-              id="descricao"
-              // label="Descrição do chamado"
-              type="text"
-              name="descricao"
-              fullWidth
-              variant="standard"
-              rows={4}
-              multiline
-              value={descricao}
-              onChange={e => setDescricao(e.target.value)}
-
-            />
-
-          </FormControl>
-
-          <p></p>
-
-          <FormControl fullWidth size="small">
-            <InputLabel id="demo-select-small">Unidade</InputLabel>
-            <Select
-              fullWidth
-              labelId="demo-select-small"
-              id="demo-select-small"
-              label="Unidade"
-              value='ssss'>
-              <MenuItem >
-                <em>Nenhum</em>
-              </MenuItem>
-              <MenuItem >
-                aaaaaa
-              </MenuItem>
-
-            </Select>
-          </FormControl>
-
-
-
-          <TextField
-            autoFocus
-            margin="dense"
-            id="caminho"
-            label="Envie uma imagem"
-            type="file"
-            name="caminho"
-            fullWidth
-            variant="standard"
-            value={caminho}
-            onChange={e => setCaminho(e.target.value)}
-          />
-
-
-
-
-
-
-
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancelar</Button>
-          <Button onClick={onSave}>Salvar</Button>
-        </DialogActions>
-      </Dialog> */}
-
-      <Dialog open={openLoadingDialog}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: 120, height: 120 }}>
-          <CircularProgress />
-        </div>
-      </Dialog>
-      {/* <Dialog
-        open={openMessageDialog}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description">
-        <DialogTitle id="alert-dialog-title">
-          Atenção
-        </DialogTitle>
-        <DialogContent style={{ width: 400 }}>
-          <DialogContentText id="alert-dialog-description">
-            {message}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions >
-
-          <Button onClick={() => setOpenMessageDialog(false)}>
-            OK
-          </Button>
-        </DialogActions>
-      </Dialog> */}
 
 
     </div >

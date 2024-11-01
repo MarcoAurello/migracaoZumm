@@ -30,7 +30,7 @@ const Alunos = (props) => {
   const [turmaSelecinada, setTurmaSelecinada] = useState([]);
   const [progress, setProgress] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [fkPerfil, setFkPerfil] = useState(null)  
+  const [fkPerfil, setFkPerfil] = useState(null)
   const [perfil, setPerfil] = useState([])
 
 
@@ -51,8 +51,8 @@ const Alunos = (props) => {
 
   const [VincularTodosEmails, setVincularTodosEmails] = useState([]);
 
-  
-  
+
+
 
   const handleCriarTodosChange = (e) => {
     if (e.target.checked) {
@@ -492,49 +492,44 @@ const Alunos = (props) => {
 
     <div>
 
-
-
-      <button style={{
-        padding: '8px 16px', margin: '0 5px',
-        backgroundColor: '#007bff', color: '#fff', border: 'none',
-        borderRadius: '4px', cursor: 'pointer',
-        transition: 'background-color 0.3s ease'
-      }} onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/home/`}>
-        home</button>
-
-      <hr></hr>
-
-
-
-      <p></p>
-      {/* {alunos.Turma.turmaNome} */}
-
-      <b>Turma: </b>{turmaSelecinada ? turmaSelecinada.turmaNome : ''}
-      <b style={{ marginLeft: '10px' }}>Codigo: </b>{turmaSelecinada ? turmaSelecinada.codigoFormatado : ''}<br></br>
-      <b style={{ marginLeft: '10px' }}>Data Inicio: </b>{turmaSelecinada ? moment(turmaSelecinada.dataInicio).format('DD/MM/YYYY') : ''}
-     
-      <b style={{ marginLeft: '10px' }}>Data Fim: </b>{turmaSelecinada ? moment(turmaSelecinada.dataTermino).format('DD/MM/YYYY') : ''}
-      {/* <b style={{ marginLeft: '10px' }}>Data Fim: </b>{turmaSelecinada ? turmaSelecinada.dataTermino : ''}
-      Início: {moment(turmaSelecinada.dataInicio).format('DD/MM/YYYY')}<br />
-          Fim: {moment(turmaSelecinada.dataTermino).format('DD/MM/YYYY')}<br /> */}
-      <a
+      <div
         style={{
-          marginLeft: '10px',
-          padding: '10px 20px',
-          backgroundColor: '#4CAF50', // Cor de fundo verde
-          color: 'white',             // Cor do texto
-          textDecoration: 'none',     // Remove o sublinhado
-          borderRadius: '5px',        // Bordas arredondadas
-          display: 'inline-block',    // Para respeitar o padding e o background
-          transition: 'background-color 0.3s ease', // Suave ao passar o mouse
+          margin: '20px',
+          padding: '20px',
+          backgroundColor: '#f9f9fb',
+          borderRadius: '12px',
+          boxShadow: '0px 6px 20px rgba(0, 0, 0, 0.15)',
+          border: '1px solid #e0e3e7'
         }}
-        href={turmaSelecinada ? turmaSelecinada.linkTurma : ''}
-        target="_blank" // Abre o link em uma nova aba
-        rel="noopener noreferrer" // Segurança ao abrir links externos
       >
-        Entrar na sala do Teams
-      </a>
 
+        <button style={{
+          padding: '8px 16px ',
+          marginRight: '10px',
+
+          backgroundColor: '#4a90e2',
+          alignSelf: 'end',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+        }} onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/home/`}>
+          home</button>
+
+        <button style={{
+          padding: '8px 16px',
+
+          backgroundColor: '#4a90e2',
+          alignSelf: 'end',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+        }} onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/turmas/`}>
+          turmas
+        </button>
+      </div>
+   
       <p></p>
 
 
@@ -554,6 +549,38 @@ const Alunos = (props) => {
           border: '1px solid #E1E1E1',
         }}
       >
+      <b style={{ marginLeft: '10px', fontSize:'18px' }}> </b>{turmaSelecinada ? turmaSelecinada.turmaNome : ''}
+        <tr>
+          <td>
+
+      <b style={{ marginLeft: '10px' }}>Codigo: </b>{turmaSelecinada ? turmaSelecinada.codigoFormatado : ''}
+          </td>
+          <td>
+
+      <b style={{ marginLeft: '10px' }}>Data Inicio: </b>{turmaSelecinada ? moment(turmaSelecinada.dataInicio).format('DD/MM/YYYY') : ''}
+      <b style={{ marginLeft: '10px' }}>Data Fim: </b>{turmaSelecinada ? moment(turmaSelecinada.dataTermino).format('DD/MM/YYYY') : ''}
+          </td>
+        </tr>
+
+
+      <a
+         style={{
+          padding: '8px 16px',
+          margin: '0 5px',
+          backgroundColor: '#626fef',
+          alignSelf: 'self-start',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+        }}
+        href={turmaSelecinada ? turmaSelecinada.linkTurma : ''}
+        target="_blank" // Abre o link em uma nova aba
+        rel="noopener noreferrer" // Segurança ao abrir links externos
+      >
+       Ver turma no Teams
+      </a>
+
         <div
           style={{
             display: 'flex',
@@ -562,327 +589,53 @@ const Alunos = (props) => {
             width: '100%',
           }}
         >
-          <div
-            style={{
-              flex: 1,
-              marginRight: '10px',
-              padding: '10px',
-              backgroundColor: '#caf0fa',
-              borderRadius: '8px',
-            }}
-          >
-            {/* Conteúdo da primeira div */}
-            <b>
 
-              Alunos sem email institucional
-            </b>
-
-            <div style={{ margin: '10px 0' }}>
-              <input
-                type="checkbox"
-                id="criarTodosCheckbox"
-                onChange={handleCriarTodosChange}
-              />
-              <label htmlFor="criarTodosCheckbox" style={{ marginLeft: '8px' }}>
-                Selecionar todos
-              </label><br></br>
-
-              {CriarTodosEmails.length > 0 ?
-                <div>
-
-                  <div>
-                    <button
-                      style={{
-                        padding: '10px 20px',
-                        marginTop: '12px',
-                        backgroundColor: 'red',
-                        color: '#FFFFFF',
-                        border: 'none',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        alignSelf: 'flex-end',
-                        fontSize: '14px',
-                        fontWeight: 'bold',
-                      }}
-
-                      onClick={() => onCreateEmailAll(CriarTodosEmails)} disabled={isLoading}>
-                      {isLoading ? 'Criando emails @edu.pe.senac.br...' : 'Criar Todos os Emails'}
-                    </button>
-
-                    {isLoading && (
-                      <div style={{ marginTop: '20px', width: '100%', textAlign: 'center' }}>
-                      <p style={{ marginBottom: '10px', fontSize: '16px', fontWeight: 'bold' }}>
-                        Progresso: {progress}%
-                      </p>
-                      <div style={{
-                        width: '100%',
-                        backgroundColor: '#f3f3f3',
-                        borderRadius: '12px',
-                        height: '24px',
-                        overflow: 'hidden',
-                        boxShadow: '0px 3px 6px rgba(0, 0, 0, 0.1)'
-                      }}>
-                        <div style={{
-                          width: `${progress}%`,
-                          height: '100%',
-                          backgroundColor: progress < 100 ? '#4caf50' : '#00c853',  // Verde quando carregando e verde mais intenso ao concluir
-                          transition: 'width 0.4s ease-in-out',
-                          borderRadius: '12px',
-                        }}></div>
-                      </div>
-                    </div>
-                    )}
+          {alunos.length > 0 ? (
+            <div>
+              {alunos.map((item, index) => (
+                <div
+                  key={index}
+                  style={{
+                    margin: '10px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    color: '#333',
+                    padding: '16px',
+                    backgroundColor: '#fff',
+                    borderRadius: '8px',
+                    marginBottom: '8px',
+                    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+                    border: '1px solid #E1E1E1',
+                  }}
+                >
+                  <div style={{ fontSize: 15, marginLeft: 8, marginRight: 8, position: 'relative' }}>
+                    <b>Aluno:</b> {item.nome}
+                  </div>
+                  <div style={{ fontSize: 15, marginLeft: 8, marginRight: 8, position: 'relative' }}>
+                    <b>idTeams:</b> {item.idEmailTeams}
+                  </div>
+                  <div style={{ fontSize: 15, marginLeft: 8, marginRight: 8, position: 'relative' }}>
+                    <b>email Senac:</b> {item.email}
+                  </div>
+                  <div style={{ fontSize: 15, marginLeft: 8, marginRight: 8, position: 'relative' }}>
+                    <b>email Cadastrado:</b> {item.emailCadastro}
                   </div>
 
 
-                </div>
 
-                : ''}
+
+
+
+
+
+                </div>
+              ))}
             </div>
-
-            {alunos
-              .filter(item => item.Aluno.emailCriado === false) // Filtra apenas os alunos com emailCriado = true
-              .map((item, index) => (
-                <div
-                  key={index}
-                  style={{
-                    marginLeft: '10px',
-                    marginRight: '10px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    minHeight: 100,
-                    color: '#333333',
-                    padding: 16,
-                    background: '#FFFFFF',
-                    borderRadius: 8,
-                    marginBottom: '8px',
-                    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
-                    border: '1px solid #E1E1E1',
-                  }}
-                >
-                  <div style={{ fontSize: 14, margin: '4px 0', fontWeight: '600' }}>
-                    <b>Nome:</b> {item.Aluno.nome}<br></br>
-                    <b>Email cadastrado:</b> {item.Aluno.emailCadastro}
-                  </div>
-                  <div style={{ fontSize: 14, margin: '4px 0', fontWeight: '600' }}>
-                    <b>
-                      <div>
-
-                        <button
-                          onClick={() => onCreateEmail(item.Aluno.id)}
-                          style={{
-                            padding: '10px 20px',
-                            marginTop: '12px',
-                            backgroundColor: '#0078D4',
-                            color: '#FFFFFF',
-                            border: 'none',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            alignSelf: 'flex-end',
-                            fontSize: '14px',
-                            fontWeight: 'bold',
-                          }}
-                        >
-                          criar email institucional
-                        </button>
-                      </div>
-                    </b>
-                  </div>
-                </div>
-              ))}
+          ) : (
+            ''
+          )}
 
 
-
-          </div>
-
-          <div
-            style={{
-              flex: 1,
-              marginLeft: '10px',
-              padding: '10px',
-              backgroundColor: '#caf0fa',
-              borderRadius: '8px',
-            }}
-          >
-            {/* Conteúdo da segunda div */}
-            <b>
-
-              Vincular alunos a turma
-            </b>
-            <div style={{ margin: '10px 0' }}>
-              <input
-                type="checkbox"
-                id="criarTodosCheckbox"
-                onChange={handleVincularTodosChange}
-              />
-              <label htmlFor="criarTodosCheckbox" style={{ marginLeft: '8px' }}>
-                Selecionar todos
-              </label><br></br>
-
-              {VincularTodosEmails.length > 0 ?
-
-                <div>
-                  <button
-                    style={{
-                      padding: '10px 20px',
-                      marginTop: '12px',
-                      backgroundColor: 'red',
-                      color: '#FFFFFF',
-                      border: 'none',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      alignSelf: 'flex-end',
-                      fontSize: '14px',
-                      fontWeight: 'bold',
-                    }}
-                    onClick={() => onVinculateEmailAll(VincularTodosEmails)}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Vinculando a turma TEAMS...' : 'Vincular ao TEAMS'}
-                  </button>
-
-                  {isLoading && (
-                    <div style={{ marginTop: '20px', width: '100%', textAlign: 'center' }}>
-                    <p style={{ marginBottom: '10px', fontSize: '16px', fontWeight: 'bold' }}>
-                      Progresso: {progress}%
-                    </p>
-                    <div style={{
-                      width: '100%',
-                      backgroundColor: '#f3f3f3',
-                      borderRadius: '12px',
-                      height: '24px',
-                      overflow: 'hidden',
-                      boxShadow: '0px 3px 6px rgba(0, 0, 0, 0.1)'
-                    }}>
-                      <div style={{
-                        width: `${progress}%`,
-                        height: '100%',
-                        backgroundColor: progress < 100 ? '#4caf50' : '#00c853',  // Verde quando carregando e verde mais intenso ao concluir
-                        transition: 'width 0.4s ease-in-out',
-                        borderRadius: '12px',
-                      }}></div>
-                    </div>
-                  </div>
-                  )}
-                </div>
-
-
-
-                : ''}
-            </div>
-            {alunos
-              .filter(item => item.Aluno.emailCriado === true &&
-                item.Aluno.alunoVinculado === false
-              ) // Filtra apenas os alunos com emailCriado = true
-              .map((item, index) => (
-                <div
-                  key={index}
-                  style={{
-                    marginLeft: '10px',
-                    marginRight: '10px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    minHeight: 100,
-                    color: '#333333',
-                    padding: 16,
-                    background: '#FFFFFF',
-                    borderRadius: 8,
-                    marginBottom: '8px',
-                    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
-                    border: '1px solid #E1E1E1',
-                  }}
-                >
-                  <div style={{ fontSize: 14, margin: '4px 0', fontWeight: '600' }}>
-                    <b>Nome:</b> {item.Aluno.nome}<br></br>
-                    <b>Email Senac:</b> {item.Aluno.email}
-                  </div>
-                  <div style={{ fontSize: 14, margin: '4px 0', fontWeight: '600' }}>
-                    <b>
-                      <div>
-
-                        <button
-                          onClick={() => onSave(item.Aluno.email)}
-                          style={{
-                            padding: '10px 20px',
-                            marginTop: '12px',
-                            backgroundColor: '#0078D4',
-                            color: '#FFFFFF',
-                            border: 'none',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            alignSelf: 'flex-end',
-                            fontSize: '14px',
-                            fontWeight: 'bold',
-                          }}
-                        >
-                          vincular a turma no Teams
-                        </button>
-                      </div>
-                    </b>
-                  </div>
-
-
-                </div>
-              ))}
-
-
-
-          </div>
-          <div
-            style={{
-              flex: 1,
-              marginLeft: '10px',
-              padding: '10px',
-              backgroundColor: '#caf0fa',
-              borderRadius: '8px',
-            }}
-          >
-            {/* Conteúdo da segunda div */}
-            <b>
-
-              Alunos vinculados a essa sala TEAMS
-            </b>
-            {alunos
-              .filter(item => item.Aluno.alunoVinculado === true) // Filtra apenas os alunos com emailCriado = true
-              .map((item, index) => (
-                <div
-                  key={index}
-                  style={{
-                    marginLeft: '10px',
-                    marginRight: '10px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    minHeight: 100,
-                    color: '#333333',
-                    padding: 16,
-                    background: '#FFFFFF',
-                    borderRadius: 8,
-                    marginBottom: '8px',
-                    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
-                    border: '1px solid #E1E1E1',
-                  }}
-                >
-                  <div style={{ fontSize: 14, margin: '4px 0', fontWeight: '600' }}>
-                    <b>Nome:</b> {item.Aluno.nome}
-                  </div>
-                  <div style={{ fontSize: 14, margin: '4px 0', fontWeight: '600' }}>
-                    <b>
-                      <div>
-
-
-                        aluno vinculado
-
-                      </div>
-                    </b>
-                  </div>
-
-
-                </div>
-              ))}
-
-
-
-          </div>
 
         </div>
 
@@ -1003,7 +756,7 @@ const Alunos = (props) => {
       </Dialog> */}
 
       <Dialog open={openLoadingDialog}>
-        
+
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: 120, height: 120 }}>
           <img src={aguarde} height={100} alt="Logo" />
         </div>

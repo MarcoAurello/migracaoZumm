@@ -23,6 +23,23 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true
       },
+
+      nome: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
+
+      email: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
+
+      emailInstitucional: {
+        type: Sequelize.BOOLEAN,
+        allowNull: true
+      },
+    
+    
     
 
       createdAt: {

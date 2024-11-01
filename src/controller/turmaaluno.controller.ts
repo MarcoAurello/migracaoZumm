@@ -19,27 +19,27 @@ class TurmaAlunocontroller implements IController {
           const { id } = req.params;
     
           let registro = [];
+          let alunos = [];
     
           registro = await TurmaAluno.findAll({
             where: { fkTurma: id },
-            include: [
-              {
-                model: Aluno,
-               
-              },
-              {
-                model: Turma,
-               
-              },
-            
-            ],
-          });
-    
          
-      
-          console.log("11111111111111" + JSON.stringify(registro));
+          });
+
+          if(registro){
+            
+             alunos = registro.map(registro => registro.fkAluno);
+          }
+
+          const alunosDetalhes = await Aluno.findAll({
+            where: {
+                fkAluno: alunos  // substitua `id` por `fkAluno` se o campo em Aluno for diferente
+            }
+        });
+
+          console.log("11111111111111" + JSON.stringify(alunosDetalhes));
     
-          res.status(200).json({ data: registro });
+          res.status(200).json({ data: alunosDetalhes });
         } catch (err) {
           console.log(err);
           res.status(401).json({ message: err.errors[0].message });

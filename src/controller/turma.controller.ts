@@ -75,6 +75,35 @@ async function adicionarMembroEquipe(teamId, userId) {
   }
 }
 
+async function adicionarMembroEquipe1(teamId, userId,tipo) {
+  const token = await obterToken();
+  const endpoint = `https://graph.microsoft.com/v1.0/teams/${teamId}/members`;
+
+  const membro = {
+    "@odata.type": "#microsoft.graph.aadUserConversationMember",
+    "roles": [tipo],
+    "user@odata.bind": `https://graph.microsoft.com/v1.0/users/${userId}`
+  };
+
+
+  const headers = {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  };
+
+  try {
+    const response = await axios.post(endpoint, membro, { headers });
+    console.log('Membro adicionado:', response.data);
+
+
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao adicionar membrorry:', error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
+
+
 
 
 
@@ -164,11 +193,11 @@ class TurmaController implements IController {
   async all(req: Request, res: Response, next: NextFunction): Promise<any> {
     try {
       // Parâmetros de paginação
-      const page = req.query.page ? parseInt(req.query.page as string) : 1; // Número da página
-      const pageSize = req.query.pageSize ? parseInt(req.query.pageSize as string) : 10; // Tamanho da página
+      // const page = req.query.page ? parseInt(req.query.page as string) : 1; // Número da página
+      // const pageSize = req.query.pageSize ? parseInt(req.query.pageSize as string) : 10; // Tamanho da página
 
-      // Cálculo do deslocamento
-      const offset = (page - 1) * pageSize;
+      // // Cálculo do deslocamento
+      // const offset = (page - 1) * pageSize;
 
       // Consulta ao banco de dados com suporte à paginação
       const registros = await Turma.findAll({
@@ -181,27 +210,40 @@ class TurmaController implements IController {
         // }],
         // include: [TurmaAluno],
 
-        include: [
-          { model: TurmaAluno, include: [Aluno] },
+        // include: [
+        //   { model: TurmaAluno, include: [Aluno] },
 
-        ],
+        // ],
 
 
-        limit: pageSize, // Limite de registros por página
-        offset: offset, // Deslocamento
+        // limit: pageSize, // Limite de registros por página
+        // offset: offset, // Deslocamento
       });
-      console.log("uiuiuiu" + JSON.stringify(registros))
+      console.log("cdcdcd" + JSON.stringify(registros))
 
       res.status(200).json({
         data: registros,
-        currentPage: page, // Página atual
-        pageSize: pageSize, // Tamanho da página
+        // currentPage: page, // Página atual
+        // pageSize: pageSize, // Tamanho da página
       });
     } catch (err) {
       res.status(500).json({ error: err.message });
       console.error(err);
     }
   }
+
+
+  // async all (req: Request, res: Response, next: NextFunction): Promise<any> {
+  //   try {
+  //     const registros = await Turma.findAll({ order: [['nome', 'asc']] })
+
+  //     res.status(200).json({ data: registros })
+  //   } catch (err) {
+  //     res.status(401).json({ message: err.errors[0].message })
+  //   }
+  // }
+
+  
 
   async viewProfessores(req: Request, res: Response, next: NextFunction): Promise<any> {
     try {
@@ -247,10 +289,46 @@ FROM [ProvisionadorSigTeams].[dbo].[TurmaProfissional]
 
 
 
-  async create(req: Request, res: Response, next: NextFunction): Promise<any> {
-    throw new Error("Method not implemented.");
-  }
+  async create (req: Request, res: Response, next: NextFunction): Promise<any> {
+    try {
+      const {
+        idTurma,
+        email,
+        isAdmin
+      } = req.body
 
+      let tipo
+      if(isAdmin === true){
+        tipo = 'owner'
+
+      }else{
+        tipo = 'member'
+
+      }
+
+      console.log('tipo' +tipo)
+
+      const userId = await obterUsuarios(email);
+      let  membroAdicionado 
+      if(userId){
+        membroAdicionado = await adicionarMembroEquipe1(idTurma, userId,tipo);
+            
+
+      }
+
+
+     
+
+    //   const registro = await Unidade.create({
+    //     nome,
+    //     descricao
+    //   })
+
+     res.status(200).json({ data: membroAdicionado, message: 'Cadastro realizado com sucesso.' })
+    } catch (err) {
+      res.status(401).json({ message: err.errors[0].message })
+    }
+  }
 
 
   async criarEquipe(req, res, next) {
@@ -333,7 +411,7 @@ FROM [ProvisionadorSigTeams].[dbo].[TurmaProfissional]
 
       let registro = null; // Initialize as null
 
-      registro = await Turma.findOne({ where: { id } });
+      registro = await Turma.findOne({ where: { idTurma: id } });
 
       console.log('235' + JSON.stringify(registro));
 
@@ -376,7 +454,8 @@ FROM [ProvisionadorSigTeams].[dbo].[TurmaProfissional]
       const turmas = await Turma.findAll({
         where: {
           [Op.or]: [
-            { idTurma: { [Op.like]: `%${pesquisa}%` } },
+            { codigoFormatado: { [Op.like]: `%${pesquisa}%` } },
+            { turmaNome: { [Op.like]: `%${pesquisa}%` } },
           ],
         },
       });
@@ -440,23 +519,155 @@ FROM [ProvisionadorSigTeams].[dbo].[TurmaProfissional]
 
  
 
+  // async verificarProfissionalService() {
+  //   try {
+  //     // Buscar as turmas que não possuem Teams vinculados
+  //     const turmaSemTeams = await Turma.findAll({
+  //       where: { idTurmaTeams: null },
+
+  //     });
+
+  //     console.log('bil' + JSON.stringify(turmaSemTeams));
+
+  //     const idsTurmasSemTeams = turmaSemTeams.map(turma => turma.idTurma);
+  //     console.log('idsTurmasSemTeams' + idsTurmasSemTeams)
+
+  //     // Realizar a consulta na tabela `TurmaProfissional` com base nos IDs obtidos
+  //     if (idsTurmasSemTeams.length > 0) {
+  //       const [result] = await sequelize.query(`
+  //         SELECT tp.*, p.email
+  //         FROM [provisionadorsigteams].[dbo].[TurmaProfissional] tp
+  //         JOIN [provisionadorsigteams].[dbo].[Profissional] p
+  //           ON tp.fkProfissional = p.id
+  //         WHERE tp.fkTurma IN (:idsTurmasSemTeams)
+  //       `, {
+  //         replacements: { idsTurmasSemTeams },
+  //       });
+
+  //       console.log('result' + JSON.stringify(result))
+
+  //       const turmasVistas = new Set();
+
+  //       for (const item of result) {
+  //         const { fkTurma, fkProfissional } = item;
+
+  //         // Verifica se já vimos essa fkTurma
+  //         if (!turmasVistas.has(fkTurma)) {
+  //           // Adiciona a fkTurma ao conjunto
+  //           turmasVistas.add(fkTurma);
+
+  //           // Executa a ação de update na turma
+  //           console.log(`Atualizar turma com fkTurma: ${fkTurma}`);
+  //           const turmaAtual = await Turma.findOne({
+  //             where: { idTurma: fkTurma }
+
+  //           });
+
+  //           await TurmaProfissional.create({
+  //             id: uuid(),
+  //             fkTurma: fkTurma,
+  //             fkProfissional:fkProfissional
+  //           })
+  //           const token = await obterToken();
+  //           const nome = turmaAtual?.turmaNome +'gtiteste';
+  //           const codigo = turmaAtual?.codigoFormatado;
+  //           //alterar paraprovisionadorteams@pe.senac.br
+  //           const user = await obterUsuarios('provisionadorteams@pe.senac.br');
+  //           if (nome && codigo && user != undefined) {
+  //             const equipe = await criarEquipe1(token, nome, codigo, user);
+  //             const linkTurma = equipe.teamLink
+  //             if (equipe.teamId && linkTurma) {
+  //               await Turma.update(
+  //                 {
+  //                   criadoNoTeams: true,
+  //                   idTurmaTeams: equipe.teamId,
+  //                   linkTurma,
+  //                   status: 'turma criada no Temas'
+  //                 },
+  //                 { where: { idTurma: fkTurma } }
+  //               );
+
+  //               await Erro1.create({
+  //                 id: uuid(),
+  //                 turma :  fkTurma,
+  //                 descricao:'turma Migrada para Teams: '+turmaAtual ,
+  //                 corrigido:true
+      
+  //               })
+  //             }
+  //           }
+  //           console.log('turma:' + JSON.stringify(turmaAtual));
+  //         }
+  //         console.log('email professor:' + JSON.stringify(item.email));
+
+  //         if (item.email.includes('@pe.senac.br') || item.email.includes('@edu.pe.senac.br')) {
+  //           console.log('vinculando professor:' + JSON.stringify(item.email));
+  //           const userIdProf = await obterUsuarios(item.email)
+  //           const turmaTemns = await Turma.findOne({
+  //             where: { idTurma: fkTurma },
+  //           });
+  //           const idTemansTurma = turmaTemns?.idTurmaTeams
+
+  //           if(idTemansTurma &&userIdProf ){
+  //             const membroAdicionado = await adicionarMembroEquipe(idTemansTurma, userIdProf)
+  //             const profissional = await Profissional.create({
+  //               id: uuid(),
+  //               fkTeams: turmaTemns?.id,
+  //               fkProfissional: item.fkProfissional
+  //             });
+  //             await Erro1.create({
+  //               id: uuid(),
+                
+  //               profissional :  item?.fkProfissional,
+  //               descricao:'Profissional Vinculado:'+ item.email,
+  //               corrigido:true
+    
+  //             })
+
+         
+  //           }
+
+
+  //         } else {
+  //           console.log('não vinculado professor:' + JSON.stringify(item.email));
+  //           await Erro1.create({
+  //             id: uuid(),
+  //             profissional :  item?.fkProfissional,
+  //             descricao:'Profissional não Vinculado ' + item.email,
+  //             corrigido:false
+            
+  //           })
+
+
+
+  //         }
+  //       }
+
+  //     }
+
+    
+
+  //   } catch (err) {
+  //     console.error('Erro ao migrar os dados:', err);
+  //   }
+  // }
+
   async verificarProfissionalService() {
     try {
       // Buscar as turmas que não possuem Teams vinculados
       const turmaSemTeams = await Turma.findAll({
         where: { idTurmaTeams: null },
-
       });
-
-      console.log('bil' + JSON.stringify(turmaSemTeams));
-
+  
+      console.log('Turmas sem Teams:', JSON.stringify(turmaSemTeams));
+  
       const idsTurmasSemTeams = turmaSemTeams.map(turma => turma.idTurma);
-      console.log('idsTurmasSemTeams' + idsTurmasSemTeams)
-
+      console.log('IDs das turmas sem Teams:', idsTurmasSemTeams);
+  
       // Realizar a consulta na tabela `TurmaProfissional` com base nos IDs obtidos
       if (idsTurmasSemTeams.length > 0) {
         const [result] = await sequelize.query(`
-          SELECT tp.*, p.email
+          SELECT tp.*, p.email, p.nome
           FROM [provisionadorsigteams].[dbo].[TurmaProfissional] tp
           JOIN [provisionadorsigteams].[dbo].[Profissional] p
             ON tp.fkProfissional = p.id
@@ -464,39 +675,42 @@ FROM [ProvisionadorSigTeams].[dbo].[TurmaProfissional]
         `, {
           replacements: { idsTurmasSemTeams },
         });
-
-        console.log('result' + JSON.stringify(result))
-
+  
+        console.log('Resultado da consulta:', JSON.stringify(result));
+  
         const turmasVistas = new Set();
-
+  
         for (const item of result) {
           const { fkTurma, fkProfissional } = item;
-
+  
           // Verifica se já vimos essa fkTurma
           if (!turmasVistas.has(fkTurma)) {
             // Adiciona a fkTurma ao conjunto
             turmasVistas.add(fkTurma);
-
+  
             // Executa a ação de update na turma
             console.log(`Atualizar turma com fkTurma: ${fkTurma}`);
             const turmaAtual = await Turma.findOne({
               where: { idTurma: fkTurma }
-
             });
-
+  
             await TurmaProfissional.create({
               id: uuid(),
               fkTurma: fkTurma,
-              fkProfissional:fkProfissional
-            })
+              fkProfissional: fkProfissional
+            });
+  
             const token = await obterToken();
-            const nome = turmaAtual?.turmaNome + ' GTI';
+            const nome = turmaAtual?.turmaNome + ' gtiTeste';
             const codigo = turmaAtual?.codigoFormatado;
-            //alterar paraprovisionadorteams@pe.senac.br
+  
+            console.log(`Nome da equipe: ${nome}, Código: ${codigo}`);
+  
             const user = await obterUsuarios('provisionadorteams@pe.senac.br');
-            if (nome && codigo && user != undefined) {
+            if (nome && codigo && user !== undefined) {
               const equipe = await criarEquipe1(token, nome, codigo, user);
-              const linkTurma = equipe.teamLink
+              const linkTurma = equipe.teamLink;
+  
               if (equipe.teamId && linkTurma) {
                 await Turma.update(
                   {
@@ -507,71 +721,82 @@ FROM [ProvisionadorSigTeams].[dbo].[TurmaProfissional]
                   },
                   { where: { idTurma: fkTurma } }
                 );
-
+  
                 await Erro1.create({
                   id: uuid(),
-                  turma :  fkTurma,
-                  descricao:'turma Migrada para Teams: '+turmaAtual ,
-                  corrigido:true
-      
-                })
+                  turma: fkTurma,
+                  descricao: 'turma Migrada para Teams: ' + turmaAtual,
+                  corrigido: true
+                });
               }
             }
-            console.log('turma:' + JSON.stringify(turmaAtual));
+  
+            console.log('Turma atualizada:', JSON.stringify(turmaAtual));
           }
-          console.log('email professor:' + JSON.stringify(item.email));
-
+  
+          console.log('Email do professor:', item.email);
+          let codigoTurma = ''
+  
           if (item.email.includes('@pe.senac.br') || item.email.includes('@edu.pe.senac.br')) {
-            console.log('vinculando professor:' + JSON.stringify(item.email));
-            const userIdProf = await obterUsuarios(item.email)
+            console.log('Vinculando professor:', item.email);
+            const userIdProf = await obterUsuarios(item.email);
             const turmaTemns = await Turma.findOne({
               where: { idTurma: fkTurma },
             });
-            const idTemansTurma = turmaTemns?.idTurmaTeams
 
-            if(idTemansTurma &&userIdProf ){
-              const membroAdicionado = await adicionarMembroEquipe(idTemansTurma, userIdProf)
+            
+            const idTemansTurma = turmaTemns?.idTurmaTeams;
+  
+            if (idTemansTurma && userIdProf) {
+              const membroAdicionado = await adicionarMembroEquipe(idTemansTurma, userIdProf);
               const profissional = await Profissional.create({
                 id: uuid(),
-                fkTeams: turmaTemns?.id,
-                fkProfissional: item.fkProfissional
+                fkTeams: turmaTemns?.codigoFormatado,
+                fkProfissional: item?.fkProfissional,
+                nome: item?.nome,
+                email: item?.email,
+                emailInstitucuonal : true
+
               });
+  
               await Erro1.create({
                 id: uuid(),
-                
-                profissional :  item?.fkProfissional,
-                descricao:'Profissional Vinculado:'+ item.email,
-                corrigido:true
-    
-              })
-
-         
+                profissional: item?.fkProfissional,
+                descricao: 'Profissional Vinculado: ' + item.email,
+                corrigido: true
+              });
             }
-
-
+  
           } else {
-            console.log('não vinculado professor:' + JSON.stringify(item.email));
+            console.log('Não vinculado professor:', item.email);
+
+             await Profissional.create({
+              id: uuid(),
+              
+              fkProfissional: item?.fkProfissional,
+              // fkTeams: turmaTemns?.codigoFormatado,
+              nome: item?.nome,
+              email: item?.email,
+              emailInstitucuonal : false
+
+            });
+
+
             await Erro1.create({
               id: uuid(),
-              profissional :  item?.fkProfissional,
-              descricao:'Profissional não Vinculado ' + item.email,
-              corrigido:false
-            
-            })
-
-
-
+              profissional: item?.fkProfissional,
+              descricao: 'Profissional não Vinculado ' + item.email,
+              corrigido: false
+            });
           }
         }
-
       }
-
-    
-
+  
     } catch (err) {
       console.error('Erro ao migrar os dados:', err);
     }
   }
+  
 
   async migracaoService() {
     try {
@@ -585,7 +810,7 @@ FROM [ProvisionadorSigTeams].[dbo].[TurmaProfissional]
   FROM [provisionadorsigteams].[dbo].[Turma] t
   INNER JOIN [provisionadorsigteams].[dbo].[Unidade] u
   ON t.fkUnidade = u.id
-  where t.id = 128865
+  
 `);
       console.log('rel' + JSON.stringify(result))
 
