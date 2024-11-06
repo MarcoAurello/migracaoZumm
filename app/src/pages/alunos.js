@@ -558,8 +558,16 @@ const Alunos = (props) => {
           <td>
 
       <b style={{ marginLeft: '10px' }}>Data Inicio: </b>{turmaSelecinada ? moment(turmaSelecinada.dataInicio).format('DD/MM/YYYY') : ''}
-      <b style={{ marginLeft: '10px' }}>Data Fim: </b>{turmaSelecinada ? moment(turmaSelecinada.dataTermino).format('DD/MM/YYYY') : ''}
-          </td>
+      <b style={{ marginLeft: '10px' }}>Data Fim: </b>{turmaSelecinada ? moment(turmaSelecinada.dataTermino).format('DD/MM/YYYY') : ''}<p></p>
+       
+         
+       
+         
+         
+         
+       </td>
+       
+       
         </tr>
 
 
@@ -578,7 +586,7 @@ const Alunos = (props) => {
         target="_blank" // Abre o link em uma nova aba
         rel="noopener noreferrer" // Segurança ao abrir links externos
       >
-       Ver turma no Teams
+       Quantidade de alunos: {alunos ? alunos.length: ''} ver turtma no teams
       </a>
 
         <div

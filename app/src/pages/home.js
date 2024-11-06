@@ -392,6 +392,34 @@ const Home = (props) => {
             })
     }
 
+    function corrigir(item){
+        const token = getCookie('_token_task_manager')
+        const params = {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        }
+        fetch(`${process.env.REACT_APP_DOMAIN_API}/api/profissional/${item}`, params)
+        .then(response => {
+            const { status } = response
+            response.json().then(data => {
+                setOpenLoadingDialog(false)
+                if (status === 401) {
+
+                    alert('1')
+                } else if (status === 200) {
+
+                   
+
+
+                }
+            }).catch(err => setOpenLoadingDialog(true))
+        })
+
+
+
+    } 
+
     function relatorioProfissional() {
 
         const token = getCookie('_token_task_manager')
@@ -714,7 +742,7 @@ const Home = (props) => {
 
                                             {relatorioAlunos ? <div>
                                                 <b style={{ fontSize: '18px' }}>
-                                                   Erros {relatorioAlunos.filter(item => item.emailCriado === false).length}
+                                                    Erros {relatorioAlunos.filter(item => item.emailCriado === false).length}
                                                 </b>
                                                 <img src={danger} height={20} alt="Logo" />
                                             </div>
@@ -772,7 +800,7 @@ const Home = (props) => {
 
                                             {relatorioAlunos ? <div>
                                                 <b style={{ fontSize: '18px' }}>
-                                                Erro  {relatorioAlunos.filter(item => item.alunoVinculado === false).length}
+                                                    Erro  {relatorioAlunos.filter(item => item.alunoVinculado === false).length}
                                                 </b>
                                                 <img src={danger} height={20} alt="Logo" />
                                             </div>
@@ -903,7 +931,7 @@ const Home = (props) => {
 
                                                     {profissionais ? <div>
                                                         <b style={{ fontSize: '18px', color: 'red' }}>
-                                                        Erro  {profissionais.filter(item => item.fkTeams === null).length}
+                                                            Erro  {profissionais.filter(item => item.fkTeams === null).length}
                                                         </b>
                                                         <img src={danger} height={20} alt="Logo" />
                                                     </div>
@@ -934,10 +962,34 @@ const Home = (props) => {
                                                                     .filter(item => item.fkTeams === null)
                                                                     .map((item, index) => (
                                                                         <li key={index} style={{ fontSize: '14px' }}>
-                                                                            <b>Nome:</b> {item.nome} <br></br><b>Email:</b> {item.email}
-                                                                            <br></br><b>Email:</b> {item.fkTeams}
+                                                                            <b>Nome:</b> {item.nome} <br></br>
+                                                                            <b>Email:</b> {item.email}
+                                                                            <br></br>
+                                                                            {item?.fkTeams === null ?
+
+                                                                                <button
+                                                                                    onClick={() => corrigir(item.id)}
+                                                                                    style={{
+                                                                                        marginLeft: '8px',
+                                                                                        padding: '6px 12px',
+                                                                                        backgroundColor: '#007bff',
+                                                                                        color: '#fff',
+                                                                                        border: 'none',
+                                                                                        borderRadius: '4px',
+                                                                                        cursor: 'pointer'
+                                                                                    }}
+                                                                                >
+                                                                                    Corrigir
+                                                                                </button>
+
+                                                                                : 'b'}
+
+
+
                                                                             {/* <br></br><b>id:</b> {item.fkAluno} */}
+
                                                                             <hr></hr>
+
                                                                         </li>
                                                                     ))}
                                                         </ul>
@@ -1051,7 +1103,7 @@ const Home = (props) => {
 
                                             {turmas ? <div>
                                                 <b style={{ fontSize: '18px', color: 'red' }}>
-                                                   Erros {turmas ? turmas.filter(item => item.criadoNoTeams === false).length : ''}
+                                                    Erros {turmas ? turmas.filter(item => item.criadoNoTeams === false).length : ''}
                                                 </b>
                                                 <img src={danger} height={20} alt="Logo" />
                                             </div>

@@ -31,7 +31,7 @@ const Turmas = (props) => {
   const [turmaSelecionada, setTurmaSelecionada] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [email, setEmail] = useState('')
-  const [isAdmin, setIsAdmin] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
 
 
 
