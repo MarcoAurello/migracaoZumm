@@ -36,7 +36,6 @@ module.exports = {
       email: {
         type: Sequelize.STRING,
         allowNull: false,
-
       },
       emailCadastro: {
         type: Sequelize.STRING,
@@ -44,6 +43,11 @@ module.exports = {
 
       },
   
+      emailDeletado: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+
       ativo: {
         type: Sequelize.BOOLEAN,
         allowNull: false,

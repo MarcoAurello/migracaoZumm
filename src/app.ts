@@ -50,6 +50,9 @@ async function executarServicos() {
 
       await Turma.migracaoService();
       await Turma.verificarProfissionalService();
+      // await Turma.CoordenadorService();
+      
+
       await Aluno.migracaoService();
       await Aluno.criarEmailService();
       await Aluno.vincularAlunoService();
@@ -70,6 +73,7 @@ async function executarServicos() {
 
 
 executarServicos();
+
 
 
 

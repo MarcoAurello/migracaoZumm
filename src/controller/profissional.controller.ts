@@ -428,7 +428,7 @@ class ProfissionalController implements IController {
               
             `;
 
-        emailUtils.enviar('gti-sistemas@pe.senac.br', txEmail);
+        emailUtils.enviar('marciohigo@pe.senac.br', txEmail);
       }
 
 

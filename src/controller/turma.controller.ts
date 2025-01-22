@@ -666,17 +666,35 @@ FROM [ProvisionadorSigTeams].[dbo].[TurmaProfissional]
   
       // Realizar a consulta na tabela `TurmaProfissional` com base nos IDs obtidos
       if (idsTurmasSemTeams.length > 0) {
+        // const [result] = await sequelize.query(`
+        //   SELECT tp.*, p.email, p.nome
+        //   FROM [provisionadorsigteams].[dbo].[TurmaProfissional] tp
+        //   JOIN [provisionadorsigteams].[dbo].[Profissional] p
+        //     ON tp.fkProfissional = p.id
+        //   WHERE tp.fkTurma IN (:idsTurmasSemTeams)
+        // `, {
+        //   replacements: { idsTurmasSemTeams },
+        // });
+
+        // const [result1] = await sequelize.query(`
+        //   SELECT tp.*, p.email, p.nome
+        //   FROM [provisionadorsigteams].[dbo].[TurmaProfissional] tp
+        //   JOIN [provisionadorsigteams].[dbo].[Profissional] p
+        //     ON tp.fkProfissional = p.id
+        //   WHERE tp.fkTurma IN (:idsTurmasSemTeams)
+        // `, {
+        //   replacements: { idsTurmasSemTeams },
+        // });
+
         const [result] = await sequelize.query(`
-          SELECT tp.*, p.email, p.nome
-          FROM [provisionadorsigteams].[dbo].[TurmaProfissional] tp
-          JOIN [provisionadorsigteams].[dbo].[Profissional] p
-            ON tp.fkProfissional = p.id
-          WHERE tp.fkTurma IN (:idsTurmasSemTeams)
-        `, {
+          SELECT * from  [provisionadorsigteams].[dbo].[professorECoordenador]
+          where fkTurma in (:idsTurmasSemTeams)`
+          , {
           replacements: { idsTurmasSemTeams },
-        });
+        }
+      );
   
-        console.log('Resultado da consulta:', JSON.stringify(result));
+        console.log('Resultado da consultassssssssssss:', JSON.stringify(result));
   
         const turmasVistas = new Set();
   
@@ -701,7 +719,7 @@ FROM [ProvisionadorSigTeams].[dbo].[TurmaProfissional]
             });
   
             const token = await obterToken();
-            const nome = turmaAtual?.turmaNome + ' gtiTeste';
+            const nome = turmaAtual?.codigoFormatado+''+ turmaAtual?.turmaNome ;
             const codigo = turmaAtual?.codigoFormatado;
   
             console.log(`Nome da equipe: ${nome}, Código: ${codigo}`);

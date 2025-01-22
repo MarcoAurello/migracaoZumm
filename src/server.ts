@@ -25,7 +25,6 @@ import routerMembroManual from './router/membroManual.router'
 
 
 
-routerErro
 
 
 

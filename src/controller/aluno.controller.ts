@@ -1174,7 +1174,7 @@ class AlunoController implements IController {
             SELECT m.*, a.*
         FROM [provisionadorsigteams].[dbo].[Matricula] m
         JOIN [provisionadorsigteams].[dbo].[Aluno] a ON m.fkAluno = a.id
-		where m.matriculaUltimasituacao = 'Em Processo' and  m.fkTurma IN (:idsTurmas)`, {
+		where  m.fkTurma IN (:idsTurmas)`, {
         replacements: { idsTurmas: idsTurmasComTemas },
       });
   
@@ -1208,7 +1208,7 @@ class AlunoController implements IController {
               fkAluno: aluno.fkAluno || 'xxxx',
               nome: aluno.nome,
               cpf: aluno.cpf,
-              email: 'gtiTeste' + aluno.emailPessoal,
+              email:  aluno.emailPessoal,
               emailCadastro: aluno.emailPessoal || 'default@example.com',
               ativo: true,
               emailCadastroESenac: true,
@@ -1237,7 +1237,7 @@ class AlunoController implements IController {
               nome: aluno.nome,
               fkAluno: aluno.fkAluno || 'xxxx',
               cpf: aluno.cpf,
-              email: 'gtiTeste' + aluno.emailSenac,
+              email:  aluno.emailSenac,
               emailCadastro: aluno.emailPessoal || 'default@example.com',
               ativo: true,
               emailCadastroESenac: false,

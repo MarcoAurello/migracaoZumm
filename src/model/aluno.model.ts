@@ -53,6 +53,11 @@ Aluno.init({
     allowNull: false,
     
   },
+  emailDeletado: {
+    type: DataTypes.BOOLEAN,
+    allowNull: true,
+    
+  },
 
   alunoVinculado: {
     type: DataTypes.BOOLEAN,
