@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from "express";
 import aluno from "../model/aluno.model";
 import TurmaAluno from '../model/turmaaluno.model';
 import Turma from '../model/turma.model';
+const dayjs = require("dayjs");
 
 import Aluno from '../model/aluno.model';
 import Erro1 from '../model/erro.model';
@@ -297,7 +298,7 @@ async function setUserUsageLocation(userId: string, usageLocation: string) {
 
 //     // Verifica se o usuário já é um membro
 //     const usuarioJaMembro = membros.some(membro => membro.id === userId);
-    
+
 //     if (usuarioJaMembro) {
 //       console.log('O usuário já é membro da equipe.');
 //       return;
@@ -320,6 +321,8 @@ async function setUserUsageLocation(userId: string, usageLocation: string) {
 //   }
 // }
 
+
+
 async function adicionarMembroEquipe(teamId, userId) {
   const token = await obterToken();
   const endpointMembros = `https://graph.microsoft.com/v1.0/teams/${teamId}/members`;
@@ -335,7 +338,7 @@ async function adicionarMembroEquipe(teamId, userId) {
     const membros = responseMembros.data.value;
 
     const usuarioJaMembro = membros.some(membro => membro.id === userId);
-    
+
     if (usuarioJaMembro) {
       console.log(`Usuário com ID ${userId} já é membro da equipe ${teamId}.`);
       return null;  // Retorna null se o usuário já for membro
@@ -358,6 +361,65 @@ async function adicionarMembroEquipe(teamId, userId) {
   }
 }
 
+async function deletarEmailInstitucional(userPrincipalName) {
+  if (!userPrincipalName) {
+    return { error: "O parâmetro 'userPrincipalName' é obrigatório." };
+  }
+
+  const token = await obterToken();
+  const endpoint = `https://graph.microsoft.com/v1.0/users/${userPrincipalName}`;
+
+  try {
+    await axios.delete(endpoint, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    console.log(`✅ Usuário ${userPrincipalName} deletado com sucesso`);
+
+    return {
+      success: true,
+      message: `Usuário ${userPrincipalName} deletado com sucesso`
+    };
+  } catch (error) {
+    let errorMessage = "Erro desconhecido ao deletar usuário.";
+
+    if (error.response) {
+      const { status, data } = error.response;
+
+      switch (status) {
+        case 400:
+          errorMessage = "Requisição inválida. Verifique os parâmetros.";
+          break;
+        case 401:
+          errorMessage = "Não autorizado. Verifique o token de acesso.";
+          break;
+        case 403:
+          errorMessage = "Permissão negada. O token pode não ter permissões adequadas.";
+          break;
+        case 404:
+          errorMessage = `Usuário ${userPrincipalName} não encontrado.`;
+          break;
+        case 500:
+          errorMessage = "Erro interno no servidor da Microsoft.";
+          break;
+        default:
+          errorMessage = data.error?.message || "Erro desconhecido.";
+      }
+    } else if (error.request) {
+      errorMessage = "Sem resposta do servidor. Verifique sua conexão.";
+    } else {
+      errorMessage = `Erro na requisição: ${error.message}`;
+    }
+
+    console.error(`❌ ${errorMessage}`);
+    return { error: errorMessage };
+  }
+}
+
+
 
 
 
@@ -365,14 +427,14 @@ async function adicionarMembroEquipe(teamId, userId) {
 class AlunoController implements IController {
   async all(req: Request, res: Response, next: NextFunction): Promise<any> {
     try {
-     
+
       const registros = await Aluno.findAll({
         where: {
-            ativo: true,
+          ativo: true,
         },
         attributes: ['fkAluno', 'nome', 'emailCriado', 'alunoVinculado', 'email']
-    });
-    
+      });
+
       console.log("uiuiuiu" + JSON.stringify(registros))
 
       res.status(200).json({
@@ -517,7 +579,7 @@ class AlunoController implements IController {
 
   //     if (alunoscomEmailSenac.length > 0) {
   //       const fkAlunos = alunoscomEmailSenac.map(aluno => aluno.dataValues.fkAluno);
-        
+
   //       const matriculas = await sequelize.query(`
   //         SELECT m.*
   //         FROM [provisionadorsigteams].[dbo].[Matricula] m
@@ -537,7 +599,7 @@ class AlunoController implements IController {
 
   //         if (turma) {
   //           console.log(`Turma encontrada para matrícula ${matricula.fkAluno}: ${turma.idTurma}`);
-            
+
   //           for (const aluno of alunoscomEmailSenac) {
   //             if (aluno.email && aluno.email.includes('@edu.pe.senac') && !emailsProcessados.has(aluno.email)) {
   //               const userId = await obterUsuarios(aluno.email);
@@ -548,7 +610,7 @@ class AlunoController implements IController {
   //                 await delay(20000);
 
   //                 const migrando = await adicionarMembroEquipe(turma.idTurmaTeams, userId);
-                  
+
   //                 if (migrando ) {
   //                   console.log(`Atualizando aluno ${aluno.id} como vinculado.`);
   //                   await Aluno.update({ alunoVinculado: true }, { where: { id: aluno.id } });
@@ -592,6 +654,109 @@ class AlunoController implements IController {
   //   }
   // }
 
+
+
+
+
+
+  async deletarAlunoService() {
+    try {
+
+      const dataLimite = dayjs().subtract(15, "day").toDate();
+
+      const turmasConcluidas15dias = await Turma.findAll({
+        where: {
+          dataTermino: {
+            [Op.lte]: dataLimite, // Menor ou igual à data de 15 dias atrás
+          },
+        },
+      });
+
+      const turmasIds = turmasConcluidas15dias.map(turma => turma.idTurma);
+
+
+
+      if (turmasIds.length > 0) {
+        // Busca os alunos das turmas encontradas
+        const AlunosChecarEmail = await TurmaAluno.findAll({
+          where: {
+            fkTurma: {
+              [Op.in]: turmasIds,
+            },
+          },
+          attributes: ["fkAluno"], // Retorna apenas a coluna fkAluno
+        });
+
+        const [registro] = await sequelize.query(`
+          SELECT AlunoId FROM [DATASET_SIG].[dbo].[Analise_Matricula]
+          where MatriculaUltimaSituacao = 'Em Processo'
+        `);
+
+        // console.log('alunos '+ JSON.stringify(AlunosChecarEmail));
+        // console.log('registros'+ JSON.stringify(registro));
+
+        // Extrai os IDs dos alunos de cada lista
+        // const alunosIds = AlunosChecarEmail.map(aluno => aluno.fkAluno);
+        // const registrosIds = new Set(registro.map(reg => reg.AlunoId)); // Usando Set para otimizar a busca
+
+        // // Filtra os alunos que NÃO estão nos registros
+        // const alunosForaDosRegistros = alunosIds.filter(id => !registrosIds.has(id));
+
+        // const resultado = alunosForaDosRegistros.map(id => ({ fkAluno: id }));
+
+        const alunosIds = AlunosChecarEmail.map(aluno => aluno.fkAluno);
+        const registrosIds = new Set(registro.map(reg => reg.AlunoId)); // Usando Set para otimizar a busca
+
+        // Filtra os alunos que NÃO estão nos registros
+        const alunosForaDosRegistros = alunosIds.filter(id => !registrosIds.has(id));
+
+        // Cria o novo JSON no formato desejado
+        const resultado = alunosForaDosRegistros.map(id => ({ fkAluno: id }));
+
+        console.log(resultado);
+
+        console.log('Alunos que concluiram :' + JSON.stringify(resultado));
+
+
+        const idsAlunos = resultado.map(aluno => aluno.fkAluno);
+
+
+        const AlunosDeletar = await Aluno.findAll({
+          where: {
+            fkAluno: {
+              [Op.in]: idsAlunos // Filtra apenas os alunos que estão na lista
+            }
+          }
+        });
+
+        for (const aluno of AlunosDeletar) {
+          await deletarEmailInstitucional(aluno.email)
+        }
+
+
+
+        // console.log('Alunos que concluiram e nao estão em outras tusmas:' + JSON.stringify(AlunosDeletar));
+
+
+        // console.log('Alunos que concluiram e nao estão em outras tusmas:' + JSON.stringify(resultado));
+
+
+
+
+
+
+
+      } else {
+        console.log("Nenhuma turma encontrada há mais de 15 dias.");
+      }
+
+
+
+    } catch (err) {
+      console.error('Erro ao migrar os dados:', err);
+    }
+  }
+
   async vincularAlunoService() {
     try {
       const alunoscomEmailSenac = await Aluno.findAll({
@@ -603,7 +768,7 @@ class AlunoController implements IController {
 
       if (alunoscomEmailSenac.length > 0) {
         const fkAlunos = alunoscomEmailSenac.map(aluno => aluno.dataValues.fkAluno);
-        
+
         // const matriculas = await sequelize.query(`
         //   SELECT m.*
         //   FROM [provisionadorsigteams].[dbo].[Matricula] m
@@ -616,10 +781,10 @@ class AlunoController implements IController {
 
         const matriculas = await TurmaAluno.findAll({
           where: {
-              criadoNoTeams: false
+            criadoNoTeams: false
           }
-      });
-      
+        });
+
         console.log('Matrículas encontradas para vinculação:', matriculas);
 
         const emailsProcessados = new Set();
@@ -629,10 +794,10 @@ class AlunoController implements IController {
 
           if (turma) {
             console.log(`Turma encontrada para matrícula ${matricula.fkAluno}: ${turma.idTurma}`);
-            
+
             for (const aluno of alunoscomEmailSenac) {
               if (aluno.email && aluno.email.includes('@edu.pe.senac') && !emailsProcessados.has(aluno.email) &&
-               aluno.fkAluno === matricula.fkAluno) {
+                aluno.fkAluno === matricula.fkAluno) {
                 const userId = await obterUsuarios(aluno.email);
                 console.log(`userId obtido para ${aluno.email}:`, userId);
 
@@ -641,15 +806,15 @@ class AlunoController implements IController {
                   await delay(20000);
 
                   const migrando = await adicionarMembroEquipe(turma.idTurmaTeams, userId);
-                  
-                  if (migrando ) {
+
+                  if (migrando) {
                     console.log(`Atualizando aluno ${aluno.id} como vinculado.`);
                     await Aluno.update({ alunoVinculado: true }, { where: { id: aluno.id } });
                     await Erro1.create({
                       id: uuid(),
-                      aluno :    aluno?.fkAluno || 'xxxx',
-                      descricao:'aluno vinculado no teams a turma: '+ turma?.turmaNome,
-                      corrigido:true
+                      aluno: aluno?.fkAluno || 'xxxx',
+                      descricao: 'aluno vinculado no teams a turma: ' + turma?.turmaNome,
+                      corrigido: true
 
                     })
 
@@ -749,9 +914,9 @@ class AlunoController implements IController {
   //               descricao:'email institucional criado:'+ aluno.email,
   //               corrigido:true
 
-    
+
   //             })
-  
+
 
   //             const txEmail = `
   //               <b>Olá ${aluno.nome}.</b><br>
@@ -772,10 +937,10 @@ class AlunoController implements IController {
   //               descricao:'erro ao criar email do aluno: ' + aluno?.nome ,
   //               corrigido: false
 
-              
-    
+
+
   //             })
-  
+
   //           }
 
   //         }
@@ -789,7 +954,7 @@ class AlunoController implements IController {
   //     console.log('alunos sem email institucional' + JSON.stringify(alunosSemEmailSenac))
 
   //   } catch (err) {
-      
+
   //     console.error('Erro ao migrar os dados:', err);
   //   }
   // }
@@ -802,18 +967,18 @@ class AlunoController implements IController {
   //         emailCadastroESenac: false
   //       }
   //     });
-  
+
   //     if (alunosSemEmailSenac.length > 0) {
   //       for (const aluno of alunosSemEmailSenac) {
   //         const email = aluno.email;
   //         console.log('usuario ' + email);
-  
+
   //         const userExiste = await obterUsuarios(aluno.email);
   //         console.log('usuario' + userExiste);
-  
+
   //         if (userExiste.length > 0 && userExiste[0]) {
   //           console.log('usuario Existe');
-  
+
   //           // Atualiza a flag emailCriado para true
   //           await Aluno.update(
   //             {
@@ -836,7 +1001,7 @@ class AlunoController implements IController {
   //               },
   //               { where: { id: aluno.id } }
   //             );
-             
+
 
 
   //           }else{
@@ -848,7 +1013,7 @@ class AlunoController implements IController {
   //               userPrincipalName: aluno.email ,
   //               password: 'SENAC@2024'
   //             });
-    
+
   //             if (usuarioCriado) {
   //               await Aluno.update(
   //                 {
@@ -857,14 +1022,14 @@ class AlunoController implements IController {
   //                 },
   //                 { where: { id: aluno.id } }
   //               );
-    
+
   //               await Erro1.create({
   //                 id: uuid(),
   //                 aluno: aluno?.fkAluno,
   //                 descricao: 'email institucional criado: ' + aluno.email,
   //                 corrigido: true
   //               });
-    
+
   //               const txEmail = `
   //                 <b>Olá ${aluno.nome}.</b><br>
   //                 <b>Seu email de aluno Senac PE foi criado com sucesso</b><br>
@@ -874,7 +1039,7 @@ class AlunoController implements IController {
   //                 <a href="https://go.microsoft.com/fwlink/?linkid=2185828">Entrar</a>
   //                 <p>
   //               `;
-    
+
   //               // Enviar email
   //               emailUtils.enviar(aluno?.emailCadastro, txEmail);
   //             } else {
@@ -886,14 +1051,14 @@ class AlunoController implements IController {
   //               });
   //             }
   //           }
-              
-  
+
+
   //         }
   //       }
   //     }
-  
+
   //     console.log('alunos sem email institucional: ' + JSON.stringify(alunosSemEmailSenac));
-  
+
   //   } catch (err) {
   //     console.error('Erro ao migrar os dados:', err);
   //   }
@@ -909,18 +1074,18 @@ class AlunoController implements IController {
           emailCadastroESenac: false
         }
       });
-  
+
       if (alunosSemEmailSenac.length > 0) {
         for (const aluno of alunosSemEmailSenac) {
           const email = aluno.email;
           console.log('usuario ' + email);
-  
+
           const userExiste = await obterUsuarios(aluno.email);
           console.log('usuario' + userExiste);
-  
+
           if (userExiste.length > 0 && userExiste[0]) {
             console.log('usuario Existe');
-  
+
             // Atualiza a flag emailCriado para true
             await Aluno.update(
               {
@@ -931,9 +1096,9 @@ class AlunoController implements IController {
             );
           } else {
             await delay(10000);
-  
+
             const testAluno = await obterUsuarios(aluno.email); // Adicione 'await' aqui
-  
+
             if (testAluno && testAluno.length > 0) {
               console.log('ex');
               await Aluno.update(
@@ -943,14 +1108,14 @@ class AlunoController implements IController {
                 },
                 { where: { id: aluno.id } }
               );
-  
+
             } else {
               console.log(' n ex' + JSON.stringify(testAluno));
-  
+
               // Verificar se o userPrincipalName já existe
               const userPrincipalName = aluno.email; // ou qualquer outra lógica que você esteja usando
               const existingUser = await obterUsuarios(userPrincipalName);
-  
+
               if (existingUser.length === 0) { // Se não houver usuário existente
                 try {
                   const usuarioCriado = await criarEmailInstitucional({
@@ -959,7 +1124,7 @@ class AlunoController implements IController {
                     userPrincipalName: userPrincipalName,
                     password: 'SENAC@2024'
                   });
-  
+
                   await Aluno.update(
                     {
                       emailCriado: true,
@@ -967,14 +1132,14 @@ class AlunoController implements IController {
                     },
                     { where: { id: aluno.id } }
                   );
-  
+
                   await Erro1.create({
                     id: uuid(),
                     aluno: aluno?.fkAluno,
                     descricao: 'email institucional criado: ' + aluno.email,
                     corrigido: true
                   });
-  
+
                   const txEmail = `
                     <b>Olá ${aluno.nome}.</b><br>
                     <b>Seu email de aluno Senac PE foi criado com sucesso</b><br>
@@ -984,14 +1149,14 @@ class AlunoController implements IController {
                     <a href="https://go.microsoft.com/fwlink/?linkid=2185828">Entrar</a>
                     <p>
                   `;
-  
+
                   // Enviar email
                   // emailUtils.enviar(aluno?.emailCadastro, txEmail);
-  
+
                 } catch (error) {
                   // Verifica se o erro é do tipo que você quer tratar
                   if (error.response?.data?.error?.code === 'Request_BadRequest' &&
-                      error.response?.data?.error?.message.includes('Another object with the same value for property userPrincipalName already exists.')) {
+                    error.response?.data?.error?.message.includes('Another object with the same value for property userPrincipalName already exists.')) {
                     console.log(`Usuário já existe: ${aluno.email}`);
                     await Aluno.update(
                       {
@@ -1026,15 +1191,15 @@ class AlunoController implements IController {
           }
         }
       }
-  
+
       console.log('alunos sem email institucional: ' + JSON.stringify(alunosSemEmailSenac));
-  
+
     } catch (err) {
       console.error('Erro ao migrar os dados:', err);
     }
   }
-  
-  
+
+
 
   // async migracaoService() {
   //   try {
@@ -1076,7 +1241,7 @@ class AlunoController implements IController {
   //         where: {
   //           fkTurma: aluno.fkTurma,
   //           fkAluno: aluno.fkAluno,
-          
+
 
   //         }
 
@@ -1107,10 +1272,10 @@ class AlunoController implements IController {
   //             descricao:'Aluno criado na base:' + aluno.nome,
   //             corrigido: true
 
-  
+
   //           })
 
-        
+
 
 
   //         } else {
@@ -1137,7 +1302,7 @@ class AlunoController implements IController {
   //           })
 
 
-        
+
   //         }
   //       } else {
   //         console.log(`Aluno com CPF ${aluno.cpf} já cadastrado.`);
@@ -1163,12 +1328,12 @@ class AlunoController implements IController {
           }
         }
       });
-  
+
       console.log('Turmas já com temas:', JSON.stringify(turmaJaComTemas));
-  
+
       const idsTurmasComTemas = turmaJaComTemas.map(turma => turma.idTurma);
       console.log('IDs das turmas com temas:', idsTurmasComTemas);
-  
+
       // Consulta para trazer os alunos das turmas que têm temas
       const [alunosSig] = await sequelize.query(`
             SELECT m.*, a.*
@@ -1177,38 +1342,38 @@ class AlunoController implements IController {
 		where  m.fkTurma IN (:idsTurmas)`, {
         replacements: { idsTurmas: idsTurmasComTemas },
       });
-  
+
       console.log('Alunos recuperados:', JSON.stringify(alunosSig));
-  
+
       for (const aluno of alunosSig) {
         console.log('Processando aluno:', JSON.stringify(aluno)); // Log do aluno sendo processado
-  
+
         const existingAluno = await Aluno.findOne({
           where: {
             cpf: aluno?.cpf,
-       
+
           }
         });
         const vinculo = await TurmaAluno.findOne({
           where: {
-            
+
             fkAluno: aluno?.fkAluno,
-            fkTurma :aluno?.fkTurma,
-       
+            fkTurma: aluno?.fkTurma,
+
           }
 
         })
-  
-        if (!existingAluno &&  !vinculo) {
+
+        if (!existingAluno && !vinculo) {
           console.log(`Aluno não encontrado, criando: ${aluno.nome}`); // Log para novo aluno
-  
+
           if (aluno.emailPessoal && aluno.emailPessoal.includes('edu.senac')) {
             await Aluno.create({
               id: uuid(),
               fkAluno: aluno.fkAluno || 'xxxx',
               nome: aluno.nome,
               cpf: aluno.cpf,
-              email:  aluno.emailPessoal,
+              email: aluno.emailPessoal,
               emailCadastro: aluno.emailPessoal || 'default@example.com',
               ativo: true,
               emailCadastroESenac: true,
@@ -1219,12 +1384,12 @@ class AlunoController implements IController {
             await TurmaAluno.create({
               id: uuid(),
               fkAluno: aluno?.fkAluno,
-              fkTurma:aluno?.fkTurma,
+              fkTurma: aluno?.fkTurma,
               criadoNoTeams: false
             })
-  
+
             console.log(`Aluno criado na base (edu.senac): ${aluno.nome}`);
-            
+
             await Erro1.create({
               id: uuid(),
               aluno: aluno?.fkAluno || 'xxxx',
@@ -1237,7 +1402,7 @@ class AlunoController implements IController {
               nome: aluno.nome,
               fkAluno: aluno.fkAluno || 'xxxx',
               cpf: aluno.cpf,
-              email:  aluno.emailSenac,
+              email: aluno.emailSenac,
               emailCadastro: aluno.emailPessoal || 'default@example.com',
               ativo: true,
               emailCadastroESenac: false,
@@ -1247,12 +1412,12 @@ class AlunoController implements IController {
             await TurmaAluno.create({
               id: uuid(),
               fkAluno: aluno?.fkAluno,
-              fkTurma:aluno?.fkTurma,
+              fkTurma: aluno?.fkTurma,
               criadoNoTeams: false
             })
-  
+
             console.log(`Aluno criado na base (sem edu.senac): ${aluno.nome}`);
-  
+
             await Erro1.create({
               id: uuid(),
               aluno: aluno?.fkAluno || 'xxxx',
@@ -1264,13 +1429,13 @@ class AlunoController implements IController {
           console.log(`Aluno com CPF ${aluno.cpf} já cadastrado.`); // Log se já existe
         }
       }
-  
+
     } catch (err) {
       console.error('Erro ao migrar os dados:', err);
     }
   }
-  
-  
+
+
 
 
 
@@ -1633,7 +1798,7 @@ class AlunoController implements IController {
   async search(req: any, res: Response, next: NextFunction): Promise<any> {
     try {
       const { pesquisa } = req.query
-      console.log('qqqqqqq'+pesquisa)
+      console.log('qqqqqqq' + pesquisa)
 
 
       const registros = await Aluno.findAll({
@@ -1641,7 +1806,7 @@ class AlunoController implements IController {
           [Op.or]: [
             { nome: { [Op.like]: `%${pesquisa}%` } },
             { cpf: { [Op.like]: `%${pesquisa}%` } },
-           
+
           ]
         },
         // include: [

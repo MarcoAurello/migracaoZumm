@@ -48,14 +48,18 @@ async function executarServicos() {
     try {
       console.log("Iniciando execução dos serviços...");
 
-      await Turma.migracaoService();
-      await Turma.verificarProfissionalService();
-      // await Turma.CoordenadorService();
+      // await Turma.migracaoService();
+      // await Turma.verificarProfissionalService();
+    
       
 
-      await Aluno.migracaoService();
-      await Aluno.criarEmailService();
-      await Aluno.vincularAlunoService();
+      // await Aluno.migracaoService();
+      // await Aluno.criarEmailService();
+    //  await Aluno.vincularAlunoService();
+
+      await Aluno.deletarAlunoService()
+
+
 
       console.log("Execução dos serviços concluída. Aguardando 2 minutos antes de reiniciar...");
 

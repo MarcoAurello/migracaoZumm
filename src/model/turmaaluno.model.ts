@@ -41,5 +41,9 @@ TurmaAluno.init({
 })
 
 
+TurmaAluno.hasMany(Aluno, { foreignKey: 'fkAluno' })
+Aluno.hasMany(TurmaAluno, { foreignKey: 'fkAluno' })
+
+
 
 export default TurmaAluno
