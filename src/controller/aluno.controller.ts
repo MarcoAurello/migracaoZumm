@@ -669,6 +669,7 @@ class AlunoController implements IController {
           dataTermino: {
             [Op.lte]: dataLimite, // Menor ou igual à data de 15 dias atrás
           },
+          // ativo: true, // Apenas turmas ativas
         },
       });
 
@@ -733,6 +734,12 @@ class AlunoController implements IController {
           await deletarEmailInstitucional(aluno.email)
         }
 
+        await Turma.update({ ativo: false }, { where: { idTurma: turmasIds } });
+
+
+
+
+
 
 
         // console.log('Alunos que concluiram e nao estão em outras tusmas:' + JSON.stringify(AlunosDeletar));
@@ -784,29 +791,21 @@ class AlunoController implements IController {
             criadoNoTeams: false
           }
         });
-
         console.log('Matrículas encontradas para vinculação:', matriculas);
-
         const emailsProcessados = new Set();
-
         for (const matricula of matriculas) {
           const turma = await Turma.findOne({ where: { idTurma: matricula.fkTurma } });
-
           if (turma) {
             console.log(`Turma encontrada para matrícula ${matricula.fkAluno}: ${turma.idTurma}`);
-
             for (const aluno of alunoscomEmailSenac) {
               if (aluno.email && aluno.email.includes('@edu.pe.senac') && !emailsProcessados.has(aluno.email) &&
                 aluno.fkAluno === matricula.fkAluno) {
                 const userId = await obterUsuarios(aluno.email);
                 console.log(`userId obtido para ${aluno.email}:`, userId);
-
                 if (turma.idTurmaTeams && userId.length && aluno?.alunoVinculado === false) {
                   console.log(`Adicionando usuário ${userId} à equipe ${turma.idTurmaTeams}`);
                   await delay(20000);
-
                   const migrando = await adicionarMembroEquipe(turma.idTurmaTeams, userId);
-
                   if (migrando) {
                     console.log(`Atualizando aluno ${aluno.id} como vinculado.`);
                     await Aluno.update({ alunoVinculado: true }, { where: { id: aluno.id } });
@@ -815,9 +814,7 @@ class AlunoController implements IController {
                       aluno: aluno?.fkAluno || 'xxxx',
                       descricao: 'aluno vinculado no teams a turma: ' + turma?.turmaNome,
                       corrigido: true
-
                     })
-
                     console.log(`Registrando relação entre turma ${turma.idTurma} e aluno ${aluno.fkAluno}.`);
                     await TurmaAluno.update(
                       {
@@ -1111,11 +1108,9 @@ class AlunoController implements IController {
 
             } else {
               console.log(' n ex' + JSON.stringify(testAluno));
-
               // Verificar se o userPrincipalName já existe
               const userPrincipalName = aluno.email; // ou qualquer outra lógica que você esteja usando
               const existingUser = await obterUsuarios(userPrincipalName);
-
               if (existingUser.length === 0) { // Se não houver usuário existente
                 try {
                   const usuarioCriado = await criarEmailInstitucional({

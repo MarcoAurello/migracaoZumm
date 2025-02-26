@@ -38,53 +38,51 @@ app.listen(PORT, () => {
     await iniciarMigracao();
   });
 
-//   cron.schedule('*/10 * * * *', async () => {
-//     console.log('Executando a tarefa agendada a cada 10 minutos');
-//     await executarServicos();
-// });
+  //   cron.schedule('*/10 * * * *', async () => {
+  //     console.log('Executando a tarefa agendada a cada 10 minutos');
+  //     await executarServicos();
+  // });
 
-async function executarServicos() {
-  while (true) { // Loop infinito
-    try {
-      console.log("Iniciando execução dos serviços...");
+  async function executarServicos() {
+    while (true) { // Loop infinito
+      try {
+        console.log("Iniciando execução dos serviços...");
+        await Turma.migracaoService();
+        await Turma.verificarProfissionalService();
+        await Aluno.migracaoService();
+        await Aluno.criarEmailService();
+        await Aluno.vincularAlunoService();
+        // await Aluno.deletarAlunoService()
+        console.log("Execução dos serviços concluída. Aguardando 2 minutos antes de reiniciar...");
+        // Delay de 2 minutos (120.000 ms)
+        await new Promise(resolve => setTimeout(resolve, 120000));
 
-      // await Turma.migracaoService();
-      // await Turma.verificarProfissionalService();
-    
-      
-
-      // await Aluno.migracaoService();
-      // await Aluno.criarEmailService();
-    //  await Aluno.vincularAlunoService();
-
-      await Aluno.deletarAlunoService()
-
-
-
-      console.log("Execução dos serviços concluída. Aguardando 2 minutos antes de reiniciar...");
-
-      // Delay de 2 minutos (120.000 ms)
-      await new Promise(resolve => setTimeout(resolve, 120000));
-
-    } catch (error) {
-      console.error('Erro ao executar serviços:', error);
-
-      // Em caso de erro, ainda aguardamos 2 minutos antes de tentar novamente
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (error) {
+        console.error('Erro ao executar serviços:', error);
+        // Em caso de erro, ainda aguardamos 2 minutos antes de tentar novamente
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
     }
   }
-}
+  async function executarServicosDeleteEmailAlunos() {
+    while (true) { // Loop infinito
+      try {
+        console.log("Iniciando execução dos serviço de deletar turmas...");
+        await Aluno.deletarAlunoService()
+        // Delay de 2 minutos (120.000 ms)
+        await new Promise(resolve => setTimeout(resolve, 120000));
+      } catch (error) {
+        console.error('Erro ao executar serviços:', error);
+        // Em caso de erro, ainda aguardamos 2 minutos antes de tentar novamente
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+  }
 
-
-executarServicos();
-
-
-
-
-setInterval(executarServicos, 600000);
-
-
-
+  executarServicos();
+  executarServicosDeleteEmailAlunos()
+  setInterval(executarServicos, 600000);
+  setInterval(executarServicosDeleteEmailAlunos, 66600000);
 
   console.log('Serviço de migração agendado para todos os dias às 17:35.');
 });
