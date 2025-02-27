@@ -52,6 +52,7 @@ app.listen(PORT, () => {
         await Aluno.migracaoService();
         await Aluno.criarEmailService();
         await Aluno.vincularAlunoService();
+        
         // await Aluno.deletarAlunoService()
         console.log("Execução dos serviços concluída. Aguardando 2 minutos antes de reiniciar...");
         // Delay de 2 minutos (120.000 ms)
@@ -80,9 +81,9 @@ app.listen(PORT, () => {
   }
 
   executarServicos();
-  executarServicosDeleteEmailAlunos()
+  // executarServicosDeleteEmailAlunos()
   setInterval(executarServicos, 600000);
-  setInterval(executarServicosDeleteEmailAlunos, 66600000);
+  // setInterval(executarServicosDeleteEmailAlunos, 66600000);
 
   console.log('Serviço de migração agendado para todos os dias às 17:35.');
 });

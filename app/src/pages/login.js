@@ -156,7 +156,7 @@ const Login = () => {
                 Entrar
               </Button>
               <Typography variant="body2" color="text.secondary" style={{ marginTop: 1, textAlign: 'center' }}>
-                GTI@2024
+                GTI@2025
               </Typography>
             </Box>
           </Box>

@@ -64,7 +64,7 @@ async function criarEmailInstitucional({ displayName, mailNickname, userPrincipa
       successMessage: 'Usuário criado com sucesso',
       id: response.data.id,
       email:response.data.userPrincipalName,
-      senha:'SENAC@2024'
+      senha:'SENAC@2025'
     };
   } catch (error) {
     console.error('Erro ao criar usuário:', error.response ? error.response.data : error.message);
@@ -360,7 +360,7 @@ class ProfissionalController implements IController {
       if (nomeConcatenado) {
         const email1 = email;
         const mailNickname = email.split('@')[0];
-        const senhaGerada = 'SENAC@2024';
+        const senhaGerada = 'SENAC@2025';
   
         const usuarioCriado = await criarEmailInstitucional({
           displayName: nomeConcatenado,

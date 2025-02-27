@@ -1117,7 +1117,7 @@ class AlunoController implements IController {
                     displayName: aluno.nome,
                     mailNickname: email.split('@')[0],
                     userPrincipalName: userPrincipalName,
-                    password: 'SENAC@2024'
+                    password: 'SENAC@2025'
                   });
 
                   await Aluno.update(
@@ -1139,7 +1139,7 @@ class AlunoController implements IController {
                     <b>Olá ${aluno.nome}.</b><br>
                     <b>Seu email de aluno Senac PE foi criado com sucesso</b><br>
                     Email: <strong>${email}</strong><br>
-                    Senha: <strong>${'SENAC@2024'}</strong><br>
+                    Senha: <strong>${'SENAC@2025'}</strong><br>
                     <br/>
                     <a href="https://go.microsoft.com/fwlink/?linkid=2185828">Entrar</a>
                     <p>
@@ -1172,6 +1172,7 @@ class AlunoController implements IController {
                   }
                 }
               } else {
+
                 console.log(`O userPrincipalName ${userPrincipalName} já existe.`);
                 // Aqui você pode optar por atualizar a flag emailCriado ou tomar alguma outra ação
                 await Aluno.update(

@@ -1348,7 +1348,7 @@ const Home = (props) => {
                         <div style={{ marginBottom: '10px', fontSize: '18px', fontWeight: 'bold' }}>Emails</div>
 
                         <div style={{ marginBottom: '10px' }}>
-                            Senha padrão email aluno: <b style={{ color: '#d9534f' }}>SENAC@2024</b>
+                            Senha padrão email aluno: <b style={{ color: '#d9534f' }}>SENAC@2025</b>
                             <span style={{ fontSize: '14px', color: '#666' }}> (alterada no 1° acesso)</span>
                         </div>
 
