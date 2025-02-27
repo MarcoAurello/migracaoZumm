@@ -8,7 +8,7 @@ require('dotenv').config({ path: process.env.DEVMODE?.trim() === 'test' ? '.env.
 //   logging: false
 // })
 
-const sequelize = new Sequelize('ProvisionadorTeamsDev', 'sa', 'local', {
+const sequelize = new Sequelize('ProvisionadorTeams', 'sa', 'local', {
   host: '10.9.8.74',
   dialect: 'mssql',
   logging: false

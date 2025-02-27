@@ -1,7 +1,7 @@
 {
   "name": "template-01",
   "version": "0.1.0",
-  "homepage": "https://www7.pe.senac.br/migracaoteams/",
+  "homepage": "https://app1.pe.senac.br/provisionador/",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.10.5",

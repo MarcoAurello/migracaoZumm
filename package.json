@@ -53,7 +53,9 @@
     "postresetdb": "set DEVMODE=dev && yarn sequelize db:seed:all",
     "dev": "concurrently \" tsx watch ./src/app.ts\" \"cd ./app && yarn run start\"",
     "production": "tsx ./src/app.ts",
-    "build": "cd ./app && yarn run build",
+    "build": "cd ./app && npm run build",
+    "build:frontend": "cd ./app && npm run build",
+    "build:backend": "npx sucrase ./src -d ./dist --transforms typescript,imports",
     "createDb": "set DEVMODE=dev && yarn sequelize db:create"
   }
 }
