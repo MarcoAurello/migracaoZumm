@@ -12,4 +12,6 @@ docker image rm -f senac_provisionador
 docker build --no-cache -t senac_provisionador .
 docker run --name senac_provisionador -p 3555:3555 --restart always -d senac_provisionador
 
+docker logs -f senac_provisionador
+
 
